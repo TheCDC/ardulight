@@ -7,6 +7,13 @@ The Python half of this project should work on Linux/Mac/Windows.
 #Materials
 WS28* RGB LED strip attached to some sort of Arduino that has as erial connection to your PC.
 
+#Requirements
+Python libraries:
+```
+pyserial
+pillow
+```
+
 #Usage
 Upload the arduino program found in `pc_rgb_controller` to your arduino.
 Run the appropriate launch script for your OS: `run.sh` for *nix and `run.bat` for Windows.
