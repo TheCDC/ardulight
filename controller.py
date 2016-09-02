@@ -81,24 +81,29 @@ def main(*, testing=False, delay=0.02, port="COM6"):
 
     myport = serial.Serial(port=chosen_port, baudrate=115200)
     # help(Image)
-    myalarm = Alarm(0.05)
+    myalarm = Alarm(0.1)
     packed = ''
     while True:
-        if myalarm.alarm():
             # help(ImageGrab)
-            im = ImageGrab.grab()
-            # im.convert(colors=64)
-            # help(im)
-            im.thumbnail((1, 1))
-            c = im.getpixel((0, 0))
-            packed = pack_rgb(
-                *rescale_c(c, power=2, mode="poly", balance=True))
-            if DEBUG:
-                print(c, packed)
-            myport.write((str(packed) + "\n").encode(encoding='UTF-8'))
-            myalarm.reset()
-
-        feedback = read_available(myport)
+        try:
+            if myalarm.alarm():
+                im = ImageGrab.grab()
+                # im.convert(colors=64)
+                # help(im)
+                im.thumbnail((1, 1))
+                c = im.getpixel((0, 0))
+                packed = pack_rgb(
+                    *rescale_c(c, power=2, mode="poly", balance=False))
+                if DEBUG:
+                    print(c, packed)
+                myport.write((str(packed) + "\n").encode(encoding='UTF-8'))
+                myalarm.reset()
+                feedback = read_available(myport)
+        except (OSError,serial.serialutil.SerialException):
+            # if anything catastrpphic happens, wait it out
+            # putting the computer sleep is one such event
+            print("Catastrophe detected. Waiting it out...")
+            time.sleep(7)
         if DEBUG:
             pass
             # print("ECHO:", feedback)
