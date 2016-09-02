@@ -23,4 +23,4 @@ That RGB value is packed/serialized into an integer which is sent to the Arduino
 The `loop()` checks for a integer sent over serial connection, unpacks/deserializes the RGB values from it and writes that color to the whole strip.
 
 #Future
-Eventually I will add some sort of command structure so that more complex animations can be controlled by the PC.
+Eventually I will add some sort of command structure so that more complex animations can be triggered and controlled by the PC.
