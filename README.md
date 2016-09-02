@@ -1,5 +1,6 @@
 #Introduction
 You know Philips Ambilight? This is my attempt at that.
+Read about Ambilight [here](https://en.wikipedia.org/wiki/Ambilight).
 
 #Platforms
 The Python half of this project should work on Linux/Mac/Windows.
