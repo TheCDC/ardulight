@@ -5,7 +5,7 @@ You know Philips Ambilight? This is my attempt at that.
 The Python half of this project should work on Linux/Mac/Windows.
 
 #Materials
-WS28* RGB LED strip attached to some sort of Arduino that has as erial connection to your PC.
+WS28* RGB LED strip attached to some sort of Arduino that has a serial connection to your PC.
 
 #Requirements
 Python libraries:
