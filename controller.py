@@ -26,12 +26,12 @@ class Alarm(object):
 
 
 def user_pick_list(l):
-    print("Choose:")
-    print('\n'.join(["{}:{}".format(index, item)
-                     for index, item in enumerate(l)]))
     if len(l) == 1:
     	return l[0]
     else:
+	    print("Choose:")
+	    print('\n'.join(["{}:{}".format(index, item)
+	                     for index, item in enumerate(l)]))
 	    return l[int(input(">>>"))]
 
 
