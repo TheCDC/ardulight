@@ -28,7 +28,7 @@ void setup() {
   pixels.begin(); // This initializes the NeoPixel library.
   Serial.begin(115200);
   //  set timeout in millis
-  Serial.setTimeout(200) ;
+  Serial.setTimeout(1000) ;
   int d = 500;
   setColor(pixels, pixels.Color(255, 0, 0));
   pixels.show();

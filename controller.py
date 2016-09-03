@@ -27,12 +27,13 @@ class Alarm(object):
 
 def user_pick_list(l):
     if len(l) == 1:
-    	return l[0]
+        # if there is only one serial device then choose that one
+        return l[0]
     else:
-	    print("Choose:")
-	    print('\n'.join(["{}:{}".format(index, item)
-	                     for index, item in enumerate(l)]))
-	    return l[int(input(">>>"))]
+        print("Choose:")
+        print('\n'.join(["{}:{}".format(index, item)
+                         for index, item in enumerate(l)]))
+        return l[int(input(">>>"))]
 
 
 def pack_rgb(r, g, b):
@@ -84,7 +85,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
     myalarm = Alarm(0.1)
     packed = ''
     while True:
-            # help(ImageGrab)
+        # help(ImageGrab)
         try:
             if myalarm.alarm():
                 im = ImageGrab.grab()
@@ -99,11 +100,27 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 myport.write((str(packed) + "\n").encode(encoding='UTF-8'))
                 myalarm.reset()
                 feedback = read_available(myport)
-        except (OSError,serial.serialutil.SerialException):
+        except serial.serialutil.SerialException as e:
             # if anything catastrpphic happens, wait it out
             # putting the computer sleep is one such event
-            print("Catastrophe detected. Waiting it out...")
+
+            print("Serial error. Attempting to reconnect.".format(repr(e)))
+            myport.close()
+            try:
+
+                myport = serial.Serial(port=chosen_port, baudrate=115200)
+                print("Reconnected on {}!".format(chosen_port))
+            except:
+                pass
+            time.sleep(3)
+
+        except OSError as e:
+            print("Possible system sleep detected. Waiting...")
             time.sleep(7)
+        except KeyboardInterrupt:
+            print("Have a nice day!")
+            quit()
+
         if DEBUG:
             pass
             # print("ECHO:", feedback)
@@ -116,13 +133,5 @@ def main(*, testing=False, delay=0.02, port="COM6"):
     # im.save("test.png")
 
 if __name__ == '__main__':
-    # ts = []
-    # for i in range(100):
-    #     ti = time.time()
-    #     main(testing=True)
-    #     tf = time.time()
-    #     ts.append(tf-ti)
-
-    # print(sum(ts)/len(ts))
     main(testing=False)
     timeit.timeit(stmt="main(testing=True)", number=10)
