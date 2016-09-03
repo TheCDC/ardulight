@@ -81,16 +81,12 @@ def main(*, testing=False, delay=0.02, port="COM6"):
         chosen_port = user_pick_list(available_ports)
 
     myport = serial.Serial(port=chosen_port, baudrate=115200)
-    # help(Image)
     myalarm = Alarm(0.1)
     packed = ''
     while True:
-        # help(ImageGrab)
         try:
             if myalarm.alarm():
                 im = ImageGrab.grab()
-                # im.convert(colors=64)
-                # help(im)
                 im.thumbnail((1, 1))
                 c = im.getpixel((0, 0))
                 packed = pack_rgb(
@@ -101,12 +97,10 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 myalarm.reset()
                 feedback = read_available(myport)
         except serial.serialutil.SerialException as e:
-            # if anything catastrpphic happens, wait it out
-            # putting the computer sleep is one such event
-
             print("Serial error. Attempting to reconnect.".format(repr(e)))
             myport.close()
             try:
+                # reconnect after serial disconnect
 
                 myport = serial.Serial(port=chosen_port, baudrate=115200)
                 print("Reconnected on {}!".format(chosen_port))
@@ -115,22 +109,21 @@ def main(*, testing=False, delay=0.02, port="COM6"):
             time.sleep(3)
 
         except OSError as e:
+            # wait out a system sleep
             print("Possible system sleep detected. Waiting...")
             time.sleep(7)
         except KeyboardInterrupt:
+            # quit cleanly
             print("Have a nice day!")
             quit()
 
         if DEBUG:
             pass
-            # print("ECHO:", feedback)
         else:
             pass
 
         if testing:
             return 0
-        # return 0
-    # im.save("test.png")
 
 if __name__ == '__main__':
     main(testing=False)
