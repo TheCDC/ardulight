@@ -105,34 +105,6 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                         *rescale_c(c, power=2, mode="trig", balance=True))
                     colors.append(c)
                 colors = colors[::-1]
-                # print(colors)
-                # lbox = (0, 0, width // 2, height)
-                # rbox = (width // 2, 0, width , height)
-                # rbox = lbox
-
-                # leftIm = im.crop(lbox)
-                # rightIm = im.crop(rbox)
-                # rightIm.show()
-                # io = Image.new("RGB", (width//2, height))
-                # io.paste(rightIm,rbox)
-                # io.save("rtest.png")
-                # io = Image.open("rtest.png")
-                # io.paste(rightIm,)
-
-                # leftIm.thumbnail((1, 1))
-                # rightIm.thumbnail((1, 1))
-
-                # cl = leftIm.getpixel((0, 0))
-                # cr = rightIm.getpixel((0, 0))
-
-                # packedL = pack_rgb(
-                #     *rescale_c(cl, power=2, mode="trig", balance=True))
-                # packedR = pack_rgb(
-                #     *rescale_c(cr, power=2, mode="trig", balance=True))
-                # if DEBUG:
-                #     print(cl, cr, packedl, packedR)
-                # myport.write(("-1\n{}\n{}\n".format(str(packedL),
-                #                                     str(packedR))).encode(encoding='UTF-8'))
                 myport.write(("-2\n" + '\n'.join([str(i) for i in colors])).encode(encoding="UTF-8"))
                 feedback = read_available(myport)
                 tf = time.time()
