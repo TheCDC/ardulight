@@ -97,6 +97,9 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 im = ImageGrab.grab()
                 width, height = im.size
                 colors = []
+                # Split the screen into N vertical strips..
+                # Assign the average color of each strip to 
+                # its respective LED.
                 for i in range(N):
                     tempimg = im.crop((i * width // N, 0, (i+1) * width // N  , height))
                     tempimg.thumbnail((1, 1))
