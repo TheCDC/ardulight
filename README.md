@@ -15,11 +15,15 @@ pyserial
 pillow
 ```
 
-#Usage
+#Installation.
 Upload the arduino program found in `pc_rgb_controller` to your arduino.
+Make sure to installed the dependencies.
+
+#Usage
 Run the appropriate launch script for your OS: `run.sh` for *nix and `run.bat` for Windows.
 If you have multiple serial devices connected the command line interface asks you to choose one.
 Make sure to choose the serial port connected to your Arduino.
+Enjoy!
 
 #Under the hood
 

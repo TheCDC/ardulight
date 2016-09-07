@@ -11,12 +11,17 @@
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      20
 
+
+void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1);
+
 // When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
 // example for more information on possible values.
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 int delayval = 500; // delay for half a second
+
+unsigned int modeState = 0;
 
 void setup() {
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
@@ -46,30 +51,74 @@ void setup() {
 }
 
 void loop() {
-
+  long n;
+  uint32_t color;
+  uint32_t colorLeft;
+  uint32_t colorRight;
   //   For a set of NeoPixels the first NeoPixel is 0, second is 1, all the way up to the count of pixels minus one.
+  switch (modeState) {
+    case 0:
+      n = Serial.parseInt();
+      //      Serial.print("N:");
+      Serial.println(n);
+      if (n >= 0) {
+        modeState = 0;
 
-  uint32_t color = Serial.parseInt();
-//  Serial.println(color);
-  setColor(pixels, color);
-  serialFlush();
-  pixels.show();
+        color = n;
+        setColor(pixels, color);
+        pixels.show();
+      }
+      else {
+        if (n == -1) {
+          modeState = 1;
+          //          Serial.println("Going to 2 color mode");
+        }
+        else if (n == -2) {
+          modeState = 2;
 
+        }
+      }
+      break;
+    case 1:
+      colorLeft = Serial.parseInt();
+      colorRight = Serial.parseInt();
+      //      Serial.print("L:");
+      //      Serial.print(colorLeft);
+      //      Serial.print("R:");
+      //      Serial.print(colorRight);
+      //      Serial.println();
 
-  //    for(int i=0;i<NUMPIXELS;i++){
-  //
-  //      // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
-  //      pixels.setPixelColor(i, pixels.Color(0,150,0)); // Moderately bright green color.
-  //
-  //      pixels.show(); // This sends the updated pixel color to the hardware.
-  //
-  //      delay(delayval); // Delay for a period of time (in milliseconds).
-  //
-  //    }
+      //strip is separated into 2 strips of 10,
+      //LEDs 5-9 and 10-14 are on the left
+      //LEDs 0-4 and 15-19 are on the right
+
+      setColor(pixels, colorLeft, 10, 10 + 5);
+      setColor(pixels, colorLeft, 5, 5 + 5);
+
+      setColor(pixels, colorRight, 0, 0 + 5);
+      setColor(pixels, colorRight, 15, 15 + 5);
+      pixels.show();
+      modeState = 0;
+      break;
+    case 2:
+      for (int i = 0; i < 10; i++) {
+        color =  Serial.parseInt();
+        pixels.setPixelColor(i, color);
+        pixels.setPixelColor(pixels.numPixels() - i - 1, color);
+      }
+      pixels.show();
+      modeState = 0;
+      break;
+  }
+  //  Serial.print("MODE:");
+  Serial.println(modeState);
 }
 
-void setColor( Adafruit_NeoPixel &strip, uint32_t color) {
-  for (uint8_t i = 0; i < pixels.numPixels(); i ++) {
+void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1) {
+  if (b == -1) {
+    b = strip.numPixels();
+  }
+  for (uint8_t i = a; i < b; i ++) {
     //    Serial.print("Setting pixel ");
     //    Serial.print(i);
     //    Serial.print(" to ");
@@ -85,7 +134,6 @@ void blank(Adafruit_NeoPixel &strip) {
     strip.setPixelColor(i, 0);
   }
 }
-
 void serialFlush() {
 
   while (Serial.available() > 0) {

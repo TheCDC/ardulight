@@ -48,7 +48,7 @@ def unpack_rgb(n):
 
 
 def read_available(s):
-    return ''.join([str(s.read()) for i in range(s.inWaiting())])
+    return str(''.join([s.read().decode() for i in range(s.inWaiting())]))
 
 
 def rescale_c(color, power=2, mode="poly", balance=True):
@@ -71,38 +71,74 @@ def rescale_c(color, power=2, mode="poly", balance=True):
         ) for c, m in zip(color, mods)])
 
 
-def main(*, testing=False, delay=0.02, port="COM6"):
-    DEBUG = False
-
+def choose_serial(testing=False, port=""):
     available_ports = SerialDetector.serial_ports()
     if testing:
         chosen_port = port
     else:
         chosen_port = user_pick_list(available_ports)
 
-    myport = serial.Serial(port=chosen_port, baudrate=115200)
+    return serial.Serial(port=chosen_port, baudrate=115200)
+
+
+def main(*, testing=False, delay=0.02, port="COM6"):
+    DEBUG = False
+    myport = choose_serial(testing, port=port)
     rate = 20
     myalarm = Alarm(1 / rate)
     packed = ''
     ti = time.time()
     tf = time.time()
+    N = 10
     while True:
         try:
             if myalarm.alarm():
                 myalarm.reset()
                 im = ImageGrab.grab()
-                im.thumbnail((1, 1))
-                c = im.getpixel((0, 0))
-                packed = pack_rgb(
-                    *rescale_c(c, power=2, mode="trig", balance=True))
-                if DEBUG:
-                    print(c, packed)
-                myport.write((str(packed) + "\n").encode(encoding='UTF-8'))
+                width, height = im.size
+                colors = []
+                for i in range(N):
+                    tempimg = im.crop((i * width // N, 0, (i+1) * width // N  , height))
+                    tempimg.thumbnail((1, 1))
+                    c = tempimg.getpixel((0, 0))
+                    c = pack_rgb(
+                        *rescale_c(c, power=2, mode="trig", balance=True))
+                    colors.append(c)
+                colors = colors[::-1]
+                # print(colors)
+                # lbox = (0, 0, width // 2, height)
+                # rbox = (width // 2, 0, width , height)
+                # rbox = lbox
+
+                # leftIm = im.crop(lbox)
+                # rightIm = im.crop(rbox)
+                # rightIm.show()
+                # io = Image.new("RGB", (width//2, height))
+                # io.paste(rightIm,rbox)
+                # io.save("rtest.png")
+                # io = Image.open("rtest.png")
+                # io.paste(rightIm,)
+
+                # leftIm.thumbnail((1, 1))
+                # rightIm.thumbnail((1, 1))
+
+                # cl = leftIm.getpixel((0, 0))
+                # cr = rightIm.getpixel((0, 0))
+
+                # packedL = pack_rgb(
+                #     *rescale_c(cl, power=2, mode="trig", balance=True))
+                # packedR = pack_rgb(
+                #     *rescale_c(cr, power=2, mode="trig", balance=True))
+                # if DEBUG:
+                #     print(cl, cr, packedl, packedR)
+                # myport.write(("-1\n{}\n{}\n".format(str(packedL),
+                #                                     str(packedR))).encode(encoding='UTF-8'))
+                myport.write(("-2\n" + '\n'.join([str(i) for i in colors])).encode(encoding="UTF-8"))
                 feedback = read_available(myport)
                 tf = time.time()
                 print(
-                    "Loop time:{:.3f}\tRate:\t{:.2f}\tColor:{}".format(
-                        tf - ti, 1 / (tf - ti), c
+                    "Loop time:{:.3f}\tRate:{:.2f}\tColor:{}".format(
+                        tf - ti, 1 / (tf - ti),0
                     )
                 )
                 ti = time.time()
@@ -120,7 +156,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
 
         except OSError as e:
             # wait out a system sleep
-            print("Possible system sleep detected. Waiting...")
+            print("{}\nPossible system sleep detected. Waiting...".format(e))
             time.sleep(7)
         except KeyboardInterrupt:
             # quit cleanly
@@ -137,4 +173,4 @@ def main(*, testing=False, delay=0.02, port="COM6"):
 
 if __name__ == '__main__':
     main(testing=False)
-    timeit.timeit(stmt="main(testing=True)", number=10)
+    # timeit.timeit(stmt="main(testing=True)", number=10)

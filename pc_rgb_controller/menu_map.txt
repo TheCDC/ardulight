@@ -1,0 +1,2 @@
+#This is a map of the state machine for selecting the mode of the arduino lighting.
+
