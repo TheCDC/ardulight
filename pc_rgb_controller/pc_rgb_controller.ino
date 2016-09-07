@@ -9,7 +9,7 @@
 #define PIN            6
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS      29
+#define NUMPIXELS      20
 
 // When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
 // Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
@@ -28,7 +28,7 @@ void setup() {
   pixels.begin(); // This initializes the NeoPixel library.
   Serial.begin(115200);
   //  set timeout in millis
-  Serial.setTimeout(1000) ;
+  Serial.setTimeout(200) ;
   int d = 500;
   setColor(pixels, pixels.Color(255, 0, 0));
   pixels.show();
@@ -50,8 +50,9 @@ void loop() {
   //   For a set of NeoPixels the first NeoPixel is 0, second is 1, all the way up to the count of pixels minus one.
 
   uint32_t color = Serial.parseInt();
-  Serial.println(color);
+//  Serial.println(color);
   setColor(pixels, color);
+  serialFlush();
   pixels.show();
 
 
@@ -82,6 +83,13 @@ void setColor( Adafruit_NeoPixel &strip, uint32_t color) {
 void blank(Adafruit_NeoPixel &strip) {
   for (int i = 0; i < strip.numPixels(); i ++) {
     strip.setPixelColor(i, 0);
+  }
+}
+
+void serialFlush() {
+
+  while (Serial.available() > 0) {
+    char t = Serial.read();
   }
 }
 

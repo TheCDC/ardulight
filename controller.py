@@ -63,11 +63,11 @@ def rescale_c(color, power=2, mode="poly", balance=True):
         mods = (1, 1, 1)
     if mode == "poly":
         return tuple([
-            int(((c/255)**(power*m))*255) for c, m in zip(color, mods)
+            int(((c / 255)**(power * m)) * 255) for c, m in zip(color, mods)
         ])
     elif mode == "trig":
         return tuple([int(
-            ((math.cos((c/255)*math.pi + math.pi) + 1)/2)**power*255
+            ((math.cos((c / 255) * math.pi + math.pi) + 1) / 2)**power * 255
         ) for c, m in zip(color, mods)])
 
 
@@ -81,21 +81,31 @@ def main(*, testing=False, delay=0.02, port="COM6"):
         chosen_port = user_pick_list(available_ports)
 
     myport = serial.Serial(port=chosen_port, baudrate=115200)
-    myalarm = Alarm(0.1)
+    rate = 20
+    myalarm = Alarm(1 / rate)
     packed = ''
+    ti = time.time()
+    tf = time.time()
     while True:
         try:
             if myalarm.alarm():
+                myalarm.reset()
                 im = ImageGrab.grab()
                 im.thumbnail((1, 1))
                 c = im.getpixel((0, 0))
                 packed = pack_rgb(
-                    *rescale_c(c, power=2, mode="poly", balance=False))
+                    *rescale_c(c, power=2, mode="trig", balance=True))
                 if DEBUG:
                     print(c, packed)
                 myport.write((str(packed) + "\n").encode(encoding='UTF-8'))
-                myalarm.reset()
                 feedback = read_available(myport)
+                tf = time.time()
+                print(
+                    "Loop time:{:.3f}\tRate:\t{:.2f}\tColor:{}".format(
+                        tf - ti, 1 / (tf - ti), c
+                    )
+                )
+                ti = time.time()
         except serial.serialutil.SerialException as e:
             print("Serial error. Attempting to reconnect.".format(repr(e)))
             myport.close()
