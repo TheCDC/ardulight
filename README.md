@@ -42,7 +42,7 @@ Integers sent over serial should be separated by newlines.
 
 An example command to the 'duino might look like this: `16777215`. A single positive integer sent over serial will be interpreted as a "packed" RGB value. That particular value is (255,255,255), or white.
 
-Another command, `-1\n16711680\n65280` does a couple of things. The first number, -1 put the 'duino in 2-color mode, after which it looks for two more numbers, which are the following numbers.
+Another command, `-1\n16711680\n65280` does a couple of things. The first number, -1 puts the 'duino in 2-color mode, after which it looks for two more numbers, which are the following numbers.
 
 #Future
 Eventually I will add some sort of command structure so that more complex animations can be triggered and controlled by the PC.
