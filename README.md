@@ -28,6 +28,9 @@ If you have multiple serial devices connected the command line interface asks yo
 Make sure to choose the serial port connected to your Arduino.
 Enjoy!
 
+Short video demo:
+[![Youtube Link](http://img.youtube.com/vi/F1baDAY0vDA/0.jpg)](http://www.youtube.com/watch?v=F1baDAY0vDA "Lighting demo")
+
 #Under the hood
 
 ##PC

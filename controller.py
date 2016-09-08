@@ -98,7 +98,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
     """
     DEBUG = False
     myport = choose_serial(testing, port=port)
-    rate = 12
+    rate = 10
     myalarm = Alarm(1 / rate)
     packed = ''
     # stuff for tracking performance
