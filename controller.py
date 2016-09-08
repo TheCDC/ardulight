@@ -10,7 +10,9 @@ import math
 
 
 class Alarm(object):
+
     """A simple class that implements a timer."""
+
     def __init__(self, duration):
         self.dur = duration
         self.reset()
@@ -54,6 +56,17 @@ def read_available(s):
     return str(''.join([s.read().decode() for i in range(s.inWaiting())]))
 
 
+def scale_trig(c, power, eccen):
+    return int(
+        ((math.cos((c / 255) * math.pi + math.pi) + 1) /
+         2)**(power * eccen) * 255
+    )
+
+
+def scale_poly(c, power, eccen):
+    return int(((c / 255)**(power * eccen)) * 255)
+
+
 def rescale_c(color, power=2, mode="poly", balance=True):
     """Change the shape of the curve of a color
     Higher powers will put more distance between dark and light.
@@ -66,12 +79,13 @@ def rescale_c(color, power=2, mode="poly", balance=True):
         mods = (1, 1, 1)
     if mode == "poly":
         return tuple([
-            int(((c / 255)**(power * m)) * 255) for c, m in zip(color, mods)
+            scale_poly(c, power, eccen) for c, eccen in zip(color, mods)
         ])
     elif mode == "trig":
-        return tuple([int(
-            ((math.cos((c / 255) * math.pi + math.pi) + 1) / 2)**power * 255
-        ) for c, m in zip(color, mods)])
+        return tuple([
+            scale_trig(c, power, eccen)
+            for c, eccen in zip(color, mods)
+        ])
 
 
 def choose_serial(testing=False, port=""):
@@ -83,20 +97,23 @@ def choose_serial(testing=False, port=""):
 
     return serial.Serial(port=chosen_port, baudrate=115200)
 
+
 def shoot():
     return ImageGrab.grab()
 
-def extract_colors(im,n=10):
+
+def extract_colors(im, n=10):
     colors = []
     width, height = im.size
     for i in range(n):
-        tempimg = im.crop((i * width // n, 0, (i+1) * width // n  , height))
+        tempimg = im.crop((i * width // n, 0, (i + 1) * width // n, height))
         tempimg.thumbnail((1, 1))
         c = tempimg.getpixel((0, 0))
         c = pack_rgb(
             *rescale_c(c, power=2, mode="trig", balance=True))
         colors.append(c)
     return colors
+
 
 def main(*, testing=False, delay=0.02, port="COM6"):
     """The basic gist is this:
@@ -126,12 +143,16 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 im = shoot()
 
                 # Split the screen into N vertical strips.
-                # Assign the average color of each strip to 
+                # Assign the average color of each strip to
                 # its respective LED.
-                colors = extract_colors(im,N)[::-1]
+                colors = extract_colors(im, N)[::-1]
                 # send a single string telling the 'duino to switch modes,
                 # and also the colors for each LED
-                myport.write(("-2\n" + '\n'.join([str(i) for i in colors])).encode(encoding="UTF-8"))
+                myport.write((
+                    "-2\n" + '\n'.join([
+                        str(i) for i in colors
+                    ])
+                ).encode(encoding="UTF-8"))
                 feedback = read_available(myport)
                 tf = time.time()
                 print(
