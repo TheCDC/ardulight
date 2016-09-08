@@ -41,7 +41,7 @@ There are also ways to write colors to individual pixel.
 Integers sent over serial should be separated by newlines.
 
 A state machine diagram of the input system:
-![state machine](pc_rgb_controller/Arduino PC Lighting.png)
+![state machine](pc_rgb_controller/Arduino_PC_Lighting.png)
 
 An example command to the 'duino might look like this: `16777215`. A single positive integer sent over serial will be interpreted as a "packed" RGB value. That particular value is (255,255,255), or white.
 
