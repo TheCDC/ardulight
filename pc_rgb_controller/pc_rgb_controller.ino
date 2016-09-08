@@ -61,17 +61,20 @@ void loop() {
       n = Serial.parseInt();
       //      Serial.print("N:");
       Serial.println(n);
+      //change input mode based on n
       if (n >= 0) {
+        //n>=0 treats n as a packed RGB color
         modeState = 0;
-
         color = n;
+        //and simply writes it to all LEDs
         setColor(pixels, color);
         pixels.show();
       }
       else {
+        //n < 0 is a special command, triggering different input modes
         if (n == -1) {
           modeState = 1;
-          //          Serial.println("Going to 2 color mode");
+
         }
         else if (n == -2) {
           modeState = 2;
@@ -80,13 +83,11 @@ void loop() {
       }
       break;
     case 1:
+      //2color mode, a left color and right color
+      
       colorLeft = Serial.parseInt();
       colorRight = Serial.parseInt();
-      //      Serial.print("L:");
-      //      Serial.print(colorLeft);
-      //      Serial.print("R:");
-      //      Serial.print(colorRight);
-      //      Serial.println();
+
 
       //strip is separated into 2 strips of 10,
       //LEDs 5-9 and 10-14 are on the left
@@ -101,6 +102,9 @@ void loop() {
       modeState = 0;
       break;
     case 2:
+    //pixel mode. 
+    //At the moment, the strip of 20 LEDs is folded on itself on my monitor stand.
+    //This means that there is  really only one physical row.
       for (int i = 0; i < 10; i++) {
         color =  Serial.parseInt();
         pixels.setPixelColor(i, color);
@@ -130,12 +134,13 @@ void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1) 
 
 }
 void blank(Adafruit_NeoPixel &strip) {
+  //  set all pixels to black
   for (int i = 0; i < strip.numPixels(); i ++) {
     strip.setPixelColor(i, 0);
   }
 }
 void serialFlush() {
-
+  //get rid of all remaining serial input
   while (Serial.available() > 0) {
     char t = Serial.read();
   }

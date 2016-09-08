@@ -10,7 +10,7 @@ import math
 
 
 class Alarm(object):
-
+    """A simple class that implements a timer."""
     def __init__(self, duration):
         self.dur = duration
         self.reset()
@@ -26,8 +26,9 @@ class Alarm(object):
 
 
 def user_pick_list(l):
+    """Interactively ask the user to choose an itme from a list by number."""
     if len(l) == 1:
-        # if there is only one serial device then choose that one
+        # if there is only one item then choose that one
         return l[0]
     else:
         print("Choose:")
@@ -37,10 +38,12 @@ def user_pick_list(l):
 
 
 def pack_rgb(r, g, b):
+    """Take RGB values and 'pack' them into a 24-bit number."""
     return r << 16 | g << 8 | b
 
 
 def unpack_rgb(n):
+    """Take a 24-bit integer and 'unpack' it into RGB values."""
     r = n >> 16
     g = (n >> 8) % (1 << 8)
     b = n % (1 << 8)
@@ -82,11 +85,23 @@ def choose_serial(testing=False, port=""):
 
 
 def main(*, testing=False, delay=0.02, port="COM6"):
+    """The basic gist is this:
+    Set up the serial connection with the Arduino.
+    There might be multiple serial ports connected so 
+    the user should be asked to pick one.
+
+    After a port is selected, perform a loop
+        In this loop, capture the screen as an image,
+        slice that image into vertical slices
+        write the average colors of those slices to
+        the arduino over the serial connection.
+    """
     DEBUG = False
     myport = choose_serial(testing, port=port)
     rate = 20
     myalarm = Alarm(1 / rate)
     packed = ''
+    # stuff for tracking performance
     ti = time.time()
     tf = time.time()
     N = 10
@@ -97,7 +112,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 im = ImageGrab.grab()
                 width, height = im.size
                 colors = []
-                # Split the screen into N vertical strips..
+                # Split the screen into N vertical strips.
                 # Assign the average color of each strip to 
                 # its respective LED.
                 for i in range(N):
@@ -112,8 +127,8 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 feedback = read_available(myport)
                 tf = time.time()
                 print(
-                    "Loop time:{:.3f}\tRate:{:.2f}\tColor:{}".format(
-                        tf - ti, 1 / (tf - ti),0
+                    "Loop time:{:.3f}\tRate:{:.2f}".format(
+                        tf - ti, 1 / (tf - ti)
                     )
                 )
                 ti = time.time()
