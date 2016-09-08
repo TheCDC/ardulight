@@ -89,6 +89,9 @@ def rescale_c(color, power=2, mode="poly", balance=True):
 
 
 def choose_serial(testing=False, port=""):
+    """Let the user choose a serial port on which their board
+    is connected. If the propgram is ins testing mode, instead 
+    choose a supplied port."""
     available_ports = SerialDetector.serial_ports()
     if testing:
         chosen_port = port
@@ -134,7 +137,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
     packed = ''
     # stuff for tracking performance
     ti = time.time()
-    tf = time.time()
+    tf = ti
     N = 10
     while True:
         try:
