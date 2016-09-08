@@ -83,6 +83,20 @@ def choose_serial(testing=False, port=""):
 
     return serial.Serial(port=chosen_port, baudrate=115200)
 
+def shoot():
+    return ImageGrab.grab()
+
+def extract_colors(im,n=10):
+    colors = []
+    width, height = im.size
+    for i in range(n):
+        tempimg = im.crop((i * width // n, 0, (i+1) * width // n  , height))
+        tempimg.thumbnail((1, 1))
+        c = tempimg.getpixel((0, 0))
+        c = pack_rgb(
+            *rescale_c(c, power=2, mode="trig", balance=True))
+        colors.append(c)
+    return colors
 
 def main(*, testing=False, delay=0.02, port="COM6"):
     """The basic gist is this:
@@ -98,7 +112,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
     """
     DEBUG = False
     myport = choose_serial(testing, port=port)
-    rate = 10
+    rate = 20
     myalarm = Alarm(1 / rate)
     packed = ''
     # stuff for tracking performance
@@ -109,20 +123,14 @@ def main(*, testing=False, delay=0.02, port="COM6"):
         try:
             if myalarm.alarm():
                 myalarm.reset()
-                im = ImageGrab.grab()
-                width, height = im.size
-                colors = []
+                im = shoot()
+
                 # Split the screen into N vertical strips.
                 # Assign the average color of each strip to 
                 # its respective LED.
-                for i in range(N):
-                    tempimg = im.crop((i * width // N, 0, (i+1) * width // N  , height))
-                    tempimg.thumbnail((1, 1))
-                    c = tempimg.getpixel((0, 0))
-                    c = pack_rgb(
-                        *rescale_c(c, power=2, mode="trig", balance=True))
-                    colors.append(c)
-                colors = colors[::-1]
+                colors = extract_colors(im,N)[::-1]
+                # send a single string telling the 'duino to switch modes,
+                # and also the colors for each LED
                 myport.write(("-2\n" + '\n'.join([str(i) for i in colors])).encode(encoding="UTF-8"))
                 feedback = read_available(myport)
                 tf = time.time()
@@ -137,7 +145,6 @@ def main(*, testing=False, delay=0.02, port="COM6"):
             myport.close()
             try:
                 # reconnect after serial disconnect
-
                 myport = serial.Serial(port=chosen_port, baudrate=115200)
                 print("Reconnected on {}!".format(chosen_port))
             except:
@@ -163,4 +170,3 @@ def main(*, testing=False, delay=0.02, port="COM6"):
 
 if __name__ == '__main__':
     main(testing=False)
-    # timeit.timeit(stmt="main(testing=True)", number=10)
