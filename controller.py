@@ -1,7 +1,7 @@
 import PIL
 from PIL import Image
 import sys
-if sys.platform == "win32"
+if sys.platform == "win32":
     from PIL import ImageGrab
 else:
     import pyscreenshot as ImageGrab
