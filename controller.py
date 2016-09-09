@@ -1,11 +1,14 @@
 import PIL
 from PIL import Image
-from PIL import ImageGrab
+import sys
+if sys.platform == "win32"
+    from PIL import ImageGrab
+else:
+    import pyscreenshot as ImageGrab
 import serial
 import SerialDetector
 import time
 import timeit
-import sys
 import math
 
 
