@@ -36,10 +36,19 @@ def user_pick_list(l):
         # if there is only one item then choose that one
         return l[0]
     else:
-        print("Choose:")
-        print('\n'.join(["{}:{}".format(index, item)
-                         for index, item in enumerate(l)]))
-        return l[int(input(">>>"))]
+        response = '-10'
+        choice = int(response)
+        while choice < 0:
+            print("Choose:")
+            print('\n'.join(["{}:{}".format(index, item)
+                             for index, item in enumerate(l)]))
+            response = input(">>>")
+            try:
+                choice = int(response)
+            except ValueError:
+                print("ERROR!")
+                continue
+        return l[int(response)]
 
 
 def pack_rgb(r, g, b):
@@ -123,8 +132,8 @@ def extract_colors(im, n=10):
         tempimg = im.crop((i * width // n, 0, (i + 1) * width // n, height))
         # Uses whatever resizing algorithm Pillow uses to shrink
         # the image it to one pixel.
-        # Theoretically that should give us a 1x1 image that is the average
-        # color.
+        # Theoretically that should give us a 1x1 image that is the
+        # average color.
         tempimg.thumbnail((1, 1))
         # Given that the image is 1x1, get the color of that one pixel.
         c = tempimg.getpixel((0, 0))
@@ -173,8 +182,10 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                         str(i) for i in colors
                     ])
                 ).encode(encoding="UTF-8"))
+                # Throw away all the incoming serial data.
                 feedback = read_available(myport)
                 tf = time.time()
+                # Some debug data.
                 print(
                     "Loop time:{:.3f}\tRate:{:.2f}".format(
                         tf - ti, 1 / (tf - ti)
