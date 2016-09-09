@@ -14,8 +14,9 @@ The data line should be connected to pin 6 of your Arduino, although feel free t
 #Requirements
 Python libraries:
 ```
-pyserial
 pillow
+pyserial
+pyscreenshot
 ```
 
 #Installation.
