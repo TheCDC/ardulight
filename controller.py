@@ -60,6 +60,7 @@ def read_available(s):
 
 
 def scale_trig(c, power, eccen):
+    """Reshape a color curve into a trig function."""
     return int(
         ((math.cos((c / 255) * math.pi + math.pi) + 1) /
          2)**(power * eccen) * 255
@@ -67,19 +68,23 @@ def scale_trig(c, power, eccen):
 
 
 def scale_poly(c, power, eccen):
+    """Reshape a color curve into a different order/eccentricity
+    polynomial."""
     return int(((c / 255)**(power * eccen)) * 255)
 
 
-def rescale_c(color, power=2, mode="poly", balance=True):
+def rescale_c(color, power=2, mode="poly", balance=True, mods=(0.7, 0.8, 1)):
     """Change the shape of the curve of a color
     Higher powers will put more distance between dark and light.
     This is recommended.
     Smaller fractional powers bring them closer."""
     if balance:
         # adjust color response curve of each color channel
-        mods = (0.7, 0.8, 1)
+        pass
     else:
+        # disable custom color response if not desired
         mods = (1, 1, 1)
+
     if mode == "poly":
         return tuple([
             scale_poly(c, power, eccen) for c, eccen in zip(color, mods)
@@ -105,16 +110,25 @@ def choose_serial(testing=False, port=""):
 
 
 def shoot():
+    """Return PIL Image of the screen."""
     return ImageGrab.grab()
 
 
 def extract_colors(im, n=10):
+    """Get the average colors of vertical strips of the screen as a list."""
     colors = []
     width, height = im.size
     for i in range(n):
+        # First get the whole strip.
         tempimg = im.crop((i * width // n, 0, (i + 1) * width // n, height))
+        # Uses whatever resizing algorithm Pillow uses to shrink
+        # the image it to one pixel.
+        # Theoretically that should give us a 1x1 image that is the average
+        # color.
         tempimg.thumbnail((1, 1))
+        # Given that the image is 1x1, get the color of that one pixel.
         c = tempimg.getpixel((0, 0))
+        # Run it through the
         c = pack_rgb(
             *rescale_c(c, power=2, mode="trig", balance=True))
         colors.append(c)
