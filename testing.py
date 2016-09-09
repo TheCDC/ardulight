@@ -29,7 +29,11 @@ def main():
     # print(c)
     # print(timeit.timeit("ImageGrab.grab()",setup="from PIL import ImageGrab",number=500))
     # print(timeit.timeit("controller.main(testing=True,port='COM6')",setup="import controller",number=10))
-    myport = controller.choose_serial()
+
+
+    # myport = controller.choose_serial()
+    
+
     # for i in range(10):
     #     c1 = controller.pack_rgb(255, 0,0)
     #     c1s = str(c1)
@@ -42,11 +46,13 @@ def main():
     #     myport.write((str(controller.pack_rgb(255,255,255)) + "\n").encode(encoding='UTF-8'))
     #     time.sleep(0.1)
     #     print(controller.read_available(myport))
-    cmd = "-2\n" + \
-        '\n'.join(str(controller.pack_rgb(255 // i, 255 // i, 255 // i))
-                  for i in range(1, 11))
-    for i in range(10):
-        myport.write(cmd.encode(encoding='UTF-8'))
-        time.sleep(0.2)
+
+
+    # cmd = "-2\n" + \
+    #     '\n'.join(str(controller.pack_rgb(255 // i, 255 // i, 255 // i))
+    #               for i in range(1, 11))
+    # for i in range(10):
+    #     myport.write(cmd.encode(encoding='UTF-8'))
+    #     time.sleep(0.2)
 if __name__ == '__main__':
     main()

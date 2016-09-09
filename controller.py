@@ -1,10 +1,12 @@
 import PIL
 from PIL import Image
 import sys
-if sys.platform == "win32":
+PLATFORM = sys.platform
+if PLATFORM == "win32":
     from PIL import ImageGrab
 else:
     import pyscreenshot as ImageGrab
+import pyscreenshot as ImageGrab
 import serial
 import SerialDetector
 import time
@@ -46,7 +48,7 @@ def user_pick_list(l):
             try:
                 choice = int(response)
             except ValueError:
-                print("ERROR!")
+                print("ERROR! Try again.")
                 continue
         return l[int(response)]
 
