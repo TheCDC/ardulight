@@ -6,7 +6,7 @@ if PLATFORM == "win32":
     from PIL import ImageGrab
 else:
     import pyscreenshot as ImageGrab
-import pyscreenshot as ImageGrab
+# import pyscreenshot as ImageGrab
 import serial
 import SerialDetector
 import time
@@ -33,7 +33,7 @@ class Alarm(object):
 
 
 def user_pick_list(l):
-    """Interactively ask the user to choose an itme from a list by number."""
+    """Interactively ask the user to choose an item from a list by number."""
     if len(l) == 1:
         # if there is only one item then choose that one
         return l[0]
@@ -122,7 +122,10 @@ def choose_serial(testing=False, port=""):
 
 def shoot():
     """Return PIL Image of the screen."""
-    return ImageGrab.grab()
+    if PLATFORM == "linux":
+        return ImageGrab.grab(backend=None)
+    else:
+        return ImageGrab.grab()
 
 
 def extract_colors(im, n=10):
@@ -141,7 +144,7 @@ def extract_colors(im, n=10):
         c = tempimg.getpixel((0, 0))
         # Run it through the
         c = pack_rgb(
-            *rescale_c(c, power=2, mode="trig", balance=True))
+            *rescale_c(c, power=2, mode="poly", balance=True))
         colors.append(c)
     return colors
 

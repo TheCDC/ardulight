@@ -4,7 +4,8 @@ Read about Ambilight [here](https://en.wikipedia.org/wiki/Ambilight).
 
 #Platforms
 The Python half of this project should work on Linux/Mac/Windows.
-The most probable point of failure would be as platform's inability to tak screenshots.
+The most probable point of failure would be the platform's inability to tak screenshots.
+When run on non-Windows, pyscreenshot is used to grab the screen. On my windows machine this leads to about 3 FPS, which is much worse than the 15FPS I get with Pillow.
 
 #Materials
 WS28* RGB LED strip attached to some sort of Arduino that has a serial connection to your PC.
