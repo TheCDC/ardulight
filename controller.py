@@ -70,7 +70,7 @@ def read_available(s):
     return str(''.join([s.read().decode() for i in range(s.inWaiting())]))
 
 
-def scale_trig(c, power, eccen):
+def scale_trig(c, power=1, eccen=1):
     """Reshape a color curve into a trig function."""
     return int(
         ((math.cos((c / 255) * math.pi + math.pi) + 1) /
@@ -78,7 +78,7 @@ def scale_trig(c, power, eccen):
     )
 
 
-def scale_poly(c, power, eccen):
+def scale_poly(c, power=1, eccen=1):
     """Reshape a color curve into a different order/eccentricity
     polynomial."""
     return int(((c / 255)**(power * eccen)) * 255)
@@ -128,7 +128,7 @@ def shoot():
         return ImageGrab.grab()
 
 
-def extract_colors(im, n=10):
+def extract_colors(im, n=10, mode="poly"):
     """Get the average colors of vertical strips of the screen as a list."""
     colors = []
     width, height = im.size
@@ -144,7 +144,7 @@ def extract_colors(im, n=10):
         c = tempimg.getpixel((0, 0))
         # Run it through the
         c = pack_rgb(
-            *rescale_c(c, power=2, mode="poly", balance=True))
+            *rescale_c(c, power=2, mode=mode, balance=True))
         colors.append(c)
     return colors
 

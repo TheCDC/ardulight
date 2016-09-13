@@ -60,7 +60,7 @@ void loop() {
     case 0:
       n = Serial.parseInt();
       //      Serial.print("N:");
-      Serial.println(n);
+//      Serial.println(n);
       //change input mode based on n
       if (n >= 0) {
         //n>=0 treats n as a packed RGB color
@@ -115,7 +115,7 @@ void loop() {
       break;
   }
   //  Serial.print("MODE:");
-  Serial.println(modeState);
+//  Serial.println(modeState);
 }
 
 void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1) {
