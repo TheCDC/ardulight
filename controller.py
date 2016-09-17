@@ -149,7 +149,7 @@ def extract_colors(im, n=10, mode="poly"):
     return colors
 
 
-def main(*, testing=False, delay=0.02, port="COM6"):
+def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
     """The basic gist is this:
     Set up the serial connection with the Arduino.
     There might be multiple serial ports connected so 
@@ -163,7 +163,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
     """
     DEBUG = False
     myport = choose_serial(testing, port=port)
-    rate = 20
+    rate = target_rate
     myalarm = Alarm(1 / rate)
     packed = ''
     # stuff for tracking performance
@@ -179,7 +179,8 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 # Split the screen into N vertical strips.
                 # Assign the average color of each strip to
                 # its respective LED.
-                colors = extract_colors(im, N)[::-1]
+                colors = extract_colors(im, N)
+                colors = colors[::-1] + colors
                 # send a single string telling the 'duino to switch modes,
                 # and also the colors for each LED
                 myport.write((
@@ -191,9 +192,12 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 feedback = read_available(myport)
                 tf = time.time()
                 # Some debug data.
+                loop_time = tf - ti
+                loop_rate = 1 / (tf - ti)
+                error = loop_rate/rate
                 print(
-                    "Loop time:{:.3f}\tRate:{:.2f}".format(
-                        tf - ti, 1 / (tf - ti)
+                    "Loop time:{:.3f}\tRate:{:.2f}\tError:{:.2f}".format(
+                        loop_time, loop_rate,error
                     )
                 )
                 ti = time.time()
