@@ -157,7 +157,11 @@ def extract_colors(im, n=10, mode="poly"):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def main(*, testing=False, delay=0.02, port="COM6", target_rate=20):
+=======
+def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
+>>>>>>> 983173309b4ef39a3643573a6899bac236b46c51
 =======
 def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
 >>>>>>> 983173309b4ef39a3643573a6899bac236b46c51
@@ -205,17 +209,10 @@ def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
                 # Some debug data.
                 loop_time = tf - ti
                 loop_rate = 1 / (tf - ti)
-<<<<<<< HEAD
                 error = (loop_rate - rate) / rate
                 print(
                     "Loop time:{:.3f}\tRate:{:.2f}\tError:{:.2f}".format(
                         loop_time, loop_rate, error
-=======
-                error = (loop_rate - rate)/rate
-                print(
-                    "Loop time:{:.3f}\tRate:{:.2f}\tError:{:.2f}".format(
-                        loop_time, loop_rate,error
->>>>>>> 983173309b4ef39a3643573a6899bac236b46c51
                     )
                 )
                 ti = time.time()
