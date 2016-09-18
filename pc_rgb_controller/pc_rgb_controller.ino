@@ -105,10 +105,10 @@ void loop() {
     //pixel mode. 
     //At the moment, the strip of 20 LEDs is folded on itself on my monitor stand.
     //This means that there is  really only one physical row.
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < pixels.numPixels(); i++) {
         color =  Serial.parseInt();
         pixels.setPixelColor(i, color);
-        pixels.setPixelColor(pixels.numPixels() - i - 1, color);
+//        pixels.setPixelColor(pixels.numPixels() - i - 1, color);
       }
       pixels.show();
       modeState = 0;
