@@ -20,6 +20,8 @@ pyserial
 pyscreenshot
 ```
 
+Run `pip install -r requirements.txt` to install them. 
+
 #Installation.
 Upload the arduino program found in `pc_rgb_controller` to your arduino.
 Make sure to install the dependencies. Please.

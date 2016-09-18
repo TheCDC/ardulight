@@ -194,7 +194,7 @@ def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
                 # Some debug data.
                 loop_time = tf - ti
                 loop_rate = 1 / (tf - ti)
-                error = loop_rate/rate
+                error = (loop_rate - rate)/rate
                 print(
                     "Loop time:{:.3f}\tRate:{:.2f}\tError:{:.2f}".format(
                         loop_time, loop_rate,error
