@@ -16,7 +16,7 @@ import timeit
 import math
 
 
-class Alarm(object):
+class Alarm():
 
     """A simple class that implements a timer."""
 
@@ -32,6 +32,42 @@ class Alarm(object):
 
     def reset(self):
         self.start = time.time()
+
+
+class ScreenToRGB():
+
+    def __init__(self, port, baudrate, n_slices, color_scale_type="poly", color_pow=1, color_eccen=1, balance_color=True, color_mods=(1, 1, 1)):
+        self.port = port
+        self.rate = rate
+        self.n_slices = n
+        self.color_scale_type = color_scale_type
+        self.color_pow = color_pow
+        self.color_eccen = color_eccen
+        self.balance_color = balance_color
+        self.color_mods = color_mods
+        self.myserial = serial.Serial(port=port, baudrate=baudrate)
+
+    def step(self):
+        im = shoot()
+
+        # Split the screen into N vertical strips.
+        # Assign the average color of each strip to
+        # its respective LED.
+        colors = extract_colors(im,
+                                self.n_slices,
+                                power=self.color_pow,
+                                mode=self.color_scale_type,
+                                balance=self.balance_color,
+                                mods=self.color_mods)
+        colors = colors[::-1] + colors
+        # send a single string telling the 'duino to switch modes,
+        # and also the colors for each LED
+        self.myserial.write((
+            "-2\n" + '\n'.join([
+                str(i) for i in colors
+            ])
+        ).encode(encoding="UTF-8"))
+        # Throw away all the incoming serial data.
 
 
 def user_pick_list(l):
@@ -113,7 +149,7 @@ def rescale_c(color, power=2, mode="poly", balance=True, mods=(0.7, 0.8, 1)):
 
 def choose_serial(testing=False, port=""):
     """Let the user choose a serial port on which their board
-    is connected. If the propgram is ins testing mode, instead 
+    is connected. If the propgram is in testing mode, instead 
     choose a supplied port."""
     available_ports = SerialDetector.serial_ports()
     try:
@@ -135,7 +171,7 @@ def shoot():
         return ImageGrab.grab()
 
 
-def extract_colors(im, n=10, mode="poly"):
+def extract_colors(im, n=10, power=2, mode="poly", balance=True, mods=(1, 1, 1)):
     """Get the average colors of vertical strips of the screen as a list."""
     colors = []
     width, height = im.size
@@ -151,20 +187,12 @@ def extract_colors(im, n=10, mode="poly"):
         c = tempimg.getpixel((0, 0))
         # Run it through the
         c = pack_rgb(
-            *rescale_c(c, power=2, mode=mode, balance=True))
+            *rescale_c(c, power=power, mode=mode, balance=True, mods=mods))
         colors.append(c)
     return colors
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-def main(*, testing=False, delay=0.02, port="COM6", target_rate=20):
-=======
-def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
->>>>>>> 983173309b4ef39a3643573a6899bac236b46c51
-=======
-def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
->>>>>>> 983173309b4ef39a3643573a6899bac236b46c51
+def main(*, testing=False, delay=0.02, port="COM6", target_rate=16):
     """The basic gist is this:
     Set up the serial connection with the Arduino.
     There might be multiple serial ports connected so 
@@ -188,7 +216,9 @@ def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
     while True:
         try:
             if myalarm.alarm():
+                ti = time.time()
                 myalarm.reset()
+
                 im = shoot()
 
                 # Split the screen into N vertical strips.
@@ -204,7 +234,9 @@ def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
                     ])
                 ).encode(encoding="UTF-8"))
                 # Throw away all the incoming serial data.
+
                 feedback = read_available(myport)
+
                 tf = time.time()
                 # Some debug data.
                 loop_time = tf - ti
@@ -215,7 +247,6 @@ def main(*, testing=False, delay=0.02, port="COM6",target_rate=16):
                         loop_time, loop_rate, error
                     )
                 )
-                ti = time.time()
         except serial.serialutil.SerialException as e:
             print("Serial error. Attempting to reconnect.".format(repr(e)))
             myport.close()
