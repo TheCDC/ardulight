@@ -1,1 +1,1 @@
-python controller.py
+sudo python3 controller.py

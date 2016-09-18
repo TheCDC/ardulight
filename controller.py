@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import PIL
 from PIL import Image
 import sys
@@ -34,7 +36,9 @@ class Alarm(object):
 
 def user_pick_list(l):
     """Interactively ask the user to choose an item from a list by number."""
-    if len(l) == 1:
+    if len(l) == 0:
+        raise ValueError("Can't choose from list of length 0.")
+    elif len(l) == 1:
         # if there is only one item then choose that one
         return l[0]
     else:
@@ -112,10 +116,13 @@ def choose_serial(testing=False, port=""):
     is connected. If the propgram is ins testing mode, instead 
     choose a supplied port."""
     available_ports = SerialDetector.serial_ports()
-    if testing:
-        chosen_port = port
-    else:
-        chosen_port = user_pick_list(available_ports)
+    try:
+        if testing:
+            chosen_port = port
+        else:
+            chosen_port = user_pick_list(available_ports)
+    except ValueError:
+        raise RuntimeError("No serial devices found. May require admin privileges.")
 
     return serial.Serial(port=chosen_port, baudrate=115200)
 
@@ -149,7 +156,7 @@ def extract_colors(im, n=10, mode="poly"):
     return colors
 
 
-def main(*, testing=False, delay=0.02, port="COM6"):
+def main(*, testing=False, delay=0.02, port="COM6", target_rate=20):
     """The basic gist is this:
     Set up the serial connection with the Arduino.
     There might be multiple serial ports connected so 
@@ -163,7 +170,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
     """
     DEBUG = False
     myport = choose_serial(testing, port=port)
-    rate = 20
+    rate = target_rate
     myalarm = Alarm(1 / rate)
     packed = ''
     # stuff for tracking performance
@@ -191,9 +198,12 @@ def main(*, testing=False, delay=0.02, port="COM6"):
                 feedback = read_available(myport)
                 tf = time.time()
                 # Some debug data.
+                loop_time = tf - ti
+                loop_rate = 1 / (tf - ti)
+                error = (loop_rate - rate) / rate
                 print(
-                    "Loop time:{:.3f}\tRate:{:.2f}".format(
-                        tf - ti, 1 / (tf - ti)
+                    "Loop time:{:.3f}\tRate:{:.2f}\tError:{:.2f}".format(
+                        loop_time, loop_rate, error
                     )
                 )
                 ti = time.time()
@@ -215,6 +225,7 @@ def main(*, testing=False, delay=0.02, port="COM6"):
         except KeyboardInterrupt:
             # quit cleanly
             print("Have a nice day!")
+            im.save("debug/out.png")
             quit()
 
         if DEBUG:
