@@ -36,7 +36,13 @@ class Alarm():
 
 class ScreenToRGB():
 
-    def __init__(self, port, baudrate, n_slices, color_scale_type="poly", color_pow=1, color_eccen=1, balance_color=True, color_mods=(1, 1, 1)):
+    def __init__(self, port, baudrate,
+                 n_slices,
+                 color_scale_type="poly",
+                 color_pow=1,
+                 color_eccen=1,
+                 balance_color=True,
+                 color_mods=(1, 1, 1)):
         self.port = port
         self.rate = rate
         self.n_slices = n
@@ -149,8 +155,8 @@ def rescale_c(color, power=2, mode="poly", balance=True, mods=(0.7, 0.8, 1)):
 
 def choose_serial(testing=False, port=""):
     """Let the user choose a serial port on which their board
-    is connected. If the propgram is in testing mode, instead 
-    choose a supplied port."""
+    is connected.
+    If the program is in testing mode, instead choose a supplied port."""
     available_ports = SerialDetector.serial_ports()
     try:
         if testing:
@@ -158,7 +164,8 @@ def choose_serial(testing=False, port=""):
         else:
             chosen_port = user_pick_list(available_ports)
     except ValueError:
-        raise RuntimeError("No serial devices found. May require admin privileges.")
+        raise RuntimeError(
+            "No serial devices found. May require admin privileges.")
 
     return serial.Serial(port=chosen_port, baudrate=115200)
 
@@ -171,7 +178,12 @@ def shoot():
         return ImageGrab.grab()
 
 
-def extract_colors(im, n=10, power=2, mode="poly", balance=True, mods=(1, 1, 1)):
+def extract_colors(im,
+                   n=10,
+                   power=2,
+                   mode="poly",
+                   balance=True,
+                   mods=(1, 1, 1)):
     """Get the average colors of vertical strips of the screen as a list."""
     colors = []
     width, height = im.size
@@ -195,9 +207,8 @@ def extract_colors(im, n=10, power=2, mode="poly", balance=True, mods=(1, 1, 1))
 def main(*, testing=False, delay=0.02, port="COM6", target_rate=16):
     """The basic gist is this:
     Set up the serial connection with the Arduino.
-    There might be multiple serial ports connected so 
-    the user should be asked to pick one.
-
+    There might be multiple serial ports connected.
+    If so, the user should be asked to pick one.
     After a port is selected, perform a loop
         In this loop, capture the screen as an image,
         slice that image into vertical slices
