@@ -12,7 +12,6 @@ else:
 import serial
 import SerialDetector
 import time
-import timeit
 import math
 
 
@@ -25,27 +24,29 @@ class Alarm():
         self.reset()
 
     def alarm(self):
-        if time.time() - self.start >= self.dur:
-            return True
-        else:
-            return False
+        return bool(time.time() - self.start >= self.dur)
 
     def reset(self):
         self.start = time.time()
 
+    def set(self, t):
+        self.dur = t
+
 
 class ScreenToRGB():
 
-    def __init__(self, port, baudrate,
-                 n_slices,
+    def __init__(self, *,
+                 port="COM15",
+                 baudrate=115200,
+                 n_slices=10,
                  color_scale_type="poly",
                  color_pow=1,
                  color_eccen=1,
                  balance_color=True,
                  color_mods=(1, 1, 1)):
         self.port = port
-        self.rate = rate
-        self.n_slices = n
+        self.rate = baudrate
+        self.n_slices = n_slices
         self.color_scale_type = color_scale_type
         self.color_pow = color_pow
         self.color_eccen = color_eccen
@@ -181,6 +182,7 @@ def shoot():
 def extract_colors(im,
                    n=10,
                    power=2,
+                   *,
                    mode="poly",
                    balance=True,
                    mods=(1, 1, 1)):
@@ -199,12 +201,12 @@ def extract_colors(im,
         c = tempimg.getpixel((0, 0))
         # Run it through the
         c = pack_rgb(
-            *rescale_c(c, power=power, mode=mode, balance=True, mods=mods))
+            *rescale_c(c, power=power, mode=mode, balance=balance, mods=mods))
         colors.append(c)
     return colors
 
 
-def main(*, testing=False, delay=0.02, port="COM6", target_rate=16):
+def main(*, testing=False, port="COM6", target_rate=16):
     """The basic gist is this:
     Set up the serial connection with the Arduino.
     There might be multiple serial ports connected.
@@ -219,11 +221,11 @@ def main(*, testing=False, delay=0.02, port="COM6", target_rate=16):
     myport = choose_serial(testing, port=port)
     rate = target_rate
     myalarm = Alarm(1 / rate)
-    packed = ''
     # stuff for tracking performance
     ti = time.time()
     tf = ti
     N = 10
+    error = 1
     while True:
         try:
             if myalarm.alarm():
@@ -246,27 +248,32 @@ def main(*, testing=False, delay=0.02, port="COM6", target_rate=16):
                 ).encode(encoding="UTF-8"))
                 # Throw away all the incoming serial data.
 
-                feedback = read_available(myport)
+                read_available(myport)
 
                 tf = time.time()
                 # Some debug data.
                 loop_time = tf - ti
                 loop_rate = 1 / (tf - ti)
                 error = (loop_rate - rate) / rate
+                if (error < -0.1):
+                    rate -= 1
+                elif error > 0.1:
+                    rate += 1
                 print(
-                    "Loop time:{:.3f}\tRate:{:.2f}\tError:{:.2f}".format(
-                        loop_time, loop_rate, error
+                    "LoopT:{:.3f}\t1/T:{:.2f}\tError:{:.2f}\tCurRate:{}".format(
+                        loop_time, loop_rate, error, rate
                     )
                 )
         except serial.serialutil.SerialException as e:
-            print("Serial error. Attempting to reconnect.".format(repr(e)))
+            print("Serial error. Attempting to reconnect.")
             myport.close()
             try:
                 # reconnect after serial disconnect
-                myport = serial.Serial(port=chosen_port, baudrate=115200)
-                print("Reconnected on {}!".format(chosen_port))
-            except:
+                myport.open()
+                print("Reconnected on {}!".format(myport.port))
+            except serial.serialutil.SerialException as e:
                 pass
+                # print(repr(e))
             time.sleep(3)
 
         except OSError as e:
