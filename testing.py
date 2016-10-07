@@ -1,4 +1,5 @@
 from ctypes import windll
+import controller
 from controller import unpack_rgb
 import controller
 import timeit
@@ -54,5 +55,9 @@ def main():
     # for i in range(10):
     #     myport.write(cmd.encode(encoding='UTF-8'))
     #     time.sleep(0.2)
+    s = controller.ScreenToRGB()
+    for i in range(10):
+        s.step()
+        time.sleep(1)
 if __name__ == '__main__':
     main()

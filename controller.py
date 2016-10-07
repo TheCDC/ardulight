@@ -75,7 +75,9 @@ class ScreenToRGB():
             ])
         ).encode(encoding="UTF-8"))
         # Throw away all the incoming serial data.
-
+        
+    def terminate(self):
+        self.myserial.close()
 
 def user_pick_list(l):
     """Interactively ask the user to choose an item from a list by number."""
@@ -206,7 +208,7 @@ def extract_colors(im,
     return colors
 
 
-def main(*, testing=False, port="COM6", target_rate=16):
+def main(*, testing=False, port="COM6", target_rate=20):
     """The basic gist is this:
     Set up the serial connection with the Arduino.
     There might be multiple serial ports connected.
