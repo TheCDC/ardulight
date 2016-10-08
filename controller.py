@@ -45,7 +45,7 @@ class ScreenToRGB():
                  balance_color=True,
                  color_mods=(1, 1, 1)):
         self.port = port
-        self.rate = baudrate
+        self.baudrate = baudrate
         self.n_slices = n_slices
         self.color_scale_type = color_scale_type
         self.color_pow = color_pow
@@ -75,9 +75,20 @@ class ScreenToRGB():
             ])
         ).encode(encoding="UTF-8"))
         # Throw away all the incoming serial data.
-        
+
     def terminate(self):
         self.myserial.close()
+
+    def __repr__(self):
+        return "ScreenToRGB(port=\"{}\", baudrate={}, n_slices={}, color_scale_type=\"{}\", color_pow={}, color_eccen={}, balance_color={}, color_mods={})".format(self.port,
+                                                                                                                                                                    self.baudrate,
+                                                                                                                                                                    self.n_slices,
+                                                                                                                                                                    self.color_scale_type,
+                                                                                                                                                                    self.color_pow,
+                                                                                                                                                                    self.color_eccen,
+                                                                                                                                                                    self.balance_color,
+                                                                                                                                                                    self.color_mods)
+
 
 def user_pick_list(l):
     """Interactively ask the user to choose an item from a list by number."""
