@@ -3,4 +3,4 @@ __pycache__/*
 dist/*
 build/*
 debug/*
-config/*
+config/*.txt
