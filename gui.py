@@ -160,7 +160,7 @@ class ScreenToRGBApp(ttk.Frame):
 
         self.btn_start.pack(side="left")
         self.btn_stop.pack(side="left")
-        self.btn_restart.pack(side="left")
+        # self.btn_restart.pack(side="left")
         self.status_label1.pack()
         self.status_label2.pack(side="top")
         self.console_area.pack(fill="both")
