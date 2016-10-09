@@ -48,6 +48,7 @@ class ScreenToRGB():
         self.port = port
         self.baudrate = baudrate
         self.n_slices = n_slices
+        self.slice_mapping = slice_mapping
         self.color_scale_type = color_scale_type
         self.color_pow = color_pow
         self.color_eccen = color_eccen
@@ -68,8 +69,8 @@ class ScreenToRGB():
                                 balance=self.balance_color,
                                 mods=self.color_mods)
         slices = []
-        if slice_mapping:
-            for m in slice_mapping:
+        if self.slice_mapping:
+            for m in self.slice_mapping:
                 slices.append(colors[m])
         else:
             slices = colors[::-1] + colors
