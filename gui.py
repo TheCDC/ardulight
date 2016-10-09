@@ -15,7 +15,12 @@ import serial
 import time
 import textwrap
 
-Message = namedtuple("Message", ["descriptor", "text",  "data"])
+# class Message():
+#     def __init__(self,descriptor=None,text=None,data=None):
+#         self.descriptor = descriptor
+#         self.text = text
+#         self.data = data
+Message = namedtuple("Message", ["descriptor", "text", "data"])
 
 
 def ScreenWorker(inqueue=None, outqueue=None):
@@ -39,7 +44,7 @@ def ScreenWorker(inqueue=None, outqueue=None):
                 paused = False
             if m.descriptor == "new_worker":
                 del ScreenReader
-                ScreenReader = m.data
+                ScreenReader = controller.ScreenToRGB(*m.data[0], **m.data[1])
             if m.descriptor == "terminate":
                 return
         if not ScreenReader is None:
@@ -53,6 +58,10 @@ def ScreenWorker(inqueue=None, outqueue=None):
                     loop_time = tf - ti
                     loop_rate = 1 / (tf - ti)
                     error = (loop_rate - rate) / rate
+                    if error > 0.1:
+                        rate += 1
+                    elif error < -0.1:
+                        rate -= 1
                     outqueue.put(
                         Message(
                             "status",
@@ -75,12 +84,14 @@ class ScreenToRGBApp(ttk.Frame):
         master.resizable(width=False, height=False)
         # specify parent widget
         self.root = master
-        self.create_widgets()
-        self.outbox = queue.Queue()
-        self.inbox = queue.Queue()
+        self.outbox = multiprocessing.Queue()
+        self.inbox = multiprocessing.Queue()
+        self.user_slices = tk.StringVar()
         self.myscreener = None
-        self.worker = threading.Thread(
+        self.worker = multiprocessing.Process(
             target=ScreenWorker, args=(self.outbox, self.inbox))
+
+        self.create_widgets()
         self.pack()
         self.after(1, self.update)
         self.paused = True
@@ -88,9 +99,12 @@ class ScreenToRGBApp(ttk.Frame):
         self.worker.start()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+
     def create_widgets(self):
         self.frame_a = ttk.Frame()
         self.frame_b = ttk.Frame()
+        self.config_frame = ttk.Frame()
+        self.config_frame_left = ttk.Frame(self.config_frame)
         self.status1 = tk.StringVar()
         self.status2 = tk.StringVar()
 
@@ -102,16 +116,24 @@ class ScreenToRGBApp(ttk.Frame):
             self.frame_a, text="start", command=self.start_callback)
         self.btn_stop = ttk.Button(
             self.frame_a, text="stop", command=self.stop_callback)
+        self.slices_entry = tk.Entry(
+            self.config_frame_left, textvariable=self.user_slices)
+        self.serial_list = tk.Listbox(self.config_frame)
 
-        self.serial_list = tk.Listbox(self,)
         self.console_area = tk.Text(self)
         self.frame_a.pack()
         self.frame_b.pack()
+
+        self.config_frame.pack()
+        self.config_frame_left.pack(side="right", fill="both")
+        ttk.Label(self.config_frame_left, text="num. screen slices").pack(side="top")
+        self.serial_list.pack(side="left")
+        self.slices_entry.pack(side="top")
+
         self.btn_start.pack(side="left")
         self.btn_stop.pack(side="left")
         self.status_label1.pack()
         self.status_label2.pack(side="top")
-        self.serial_list.pack()
         self.console_area.pack(fill="both")
 
     def update(self):
@@ -120,7 +142,7 @@ class ScreenToRGBApp(ttk.Frame):
             while not self.inbox.empty():
                 m = self.inbox.get(False)
                 # "1.0" means line 1 col 0
-                self.console_area.insert("1.0",m.data + "\n")
+                self.console_area.insert("1.0", m.data + "\n")
                 self.status2.set(m.data)
         except queue.Empty:
             pass
@@ -135,11 +157,16 @@ class ScreenToRGBApp(ttk.Frame):
                 self.serial_list.curselection()[0])
             # construct a new RGB controller to give to the worker
             new_controller = controller.ScreenToRGB(port=selected_port)
+            kwargs = {
+                "port": selected_port,
+                "n_slices": int(self.user_slices.get())
+            }
             self.outbox.put(Message(descriptor="new_worker",
-                                    data=new_controller, text="new worker"))
+                                    data=(tuple(), kwargs), text="message to new worker with args"))
             self.outbox.put(Message("play", None, None))
             self.paused = False
-            self.status1.set('\n'.join(textwrap.wrap(repr(new_controller), 70)))
+            self.status1.set(
+                '\n'.join(textwrap.wrap(repr(new_controller), 70)))
         except IndexError:
             self.status1.set("Please select a port")
         except serial.serialutil.SerialException as e:
