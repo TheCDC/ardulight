@@ -39,6 +39,7 @@ class ScreenToRGB():
                  port="COM15",
                  baudrate=115200,
                  n_slices=10,
+                 slice_mapping=None,
                  color_scale_type="poly",
                  color_pow=1,
                  color_eccen=1,
@@ -66,12 +67,17 @@ class ScreenToRGB():
                                 mode=self.color_scale_type,
                                 balance=self.balance_color,
                                 mods=self.color_mods)
-        colors = colors[::-1] + colors
+        slices = []
+        if slice_mapping:
+            for m in slice_mapping:
+                slices.append(colors[m])
+        else:
+            slices = colors[::-1] + colors
         # send a single string telling the 'duino to switch modes,
         # and also the colors for each LED
         self.myserial.write((
             "-2\n" + '\n'.join([
-                str(i) for i in colors
+                str(i) for i in slices
             ])
         ).encode(encoding="UTF-8"))
         # Throw away all the incoming serial data.
