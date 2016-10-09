@@ -3,10 +3,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import sys
 import threading
-if sys.platform in ["win32"]:
-    import multiprocess as multiprocessing
-else:
-    import multiprocessing
+import multiprocessing
 import controller
 from collections import namedtuple
 import queue
@@ -55,26 +52,29 @@ def ScreenWorker(inqueue=None, outqueue=None):
                     myalarm.reset()
                     # print("stepping")
                     ti = time.time()
-                    ScreenReader.step()
-                    tf = time.time()
-                    loop_time = tf - ti
-                    loop_rate = 1 / (tf - ti)
-                    error = (loop_rate - rate) / rate
-                    # if error > 0.1:
-                    #     rate += 1
-                    # elif error < -0.1:
-                    #     rate -= 1
-                    outqueue.put(
-                        Message(
-                            "status",
-                            "Frame processed",
-                            "LoopT:{:.3f}, 1/T:{:.2f}, Error:{:.2f}, CurRate:{}".format(
-                                loop_time, loop_rate, error, rate
-                            )
-                        ),
-                        False
-                    )
-                    time.sleep(1 / rate)
+                    try:
+                        ScreenReader.step()
+                        tf = time.time()
+                        loop_time = tf - ti
+                        loop_rate = 1 / (tf - ti)
+                        error = (loop_rate - rate) / rate
+                        # if error > 0.1:
+                        #     rate += 1
+                        # elif error < -0.1:
+                        #     rate -= 1
+                        outqueue.put(
+                            Message(
+                                "status",
+                                "Frame processed",
+                                "LoopT:{:.3f}, 1/T:{:.2f}, Error:{:.2f}, CurRate:{}".format(
+                                    loop_time, loop_rate, error, rate
+                                )
+                            ),
+                            False
+                        )
+                        time.sleep(1 / rate)
+                    except IndexError:
+                        outqueue.put(Message("error", "INVALID MAPPING!", ""))
         else:
             pass
 
@@ -91,6 +91,8 @@ class ScreenToRGBApp(ttk.Frame):
         self.inbox = multiprocessing.Queue()
         self.n_slices = tk.StringVar()
         self.user_slice_map = tk.StringVar()
+        self.user_color_mods = tk.StringVar()
+        self.user_color_mods.set("1 1 1")
         self.myscreener = None
         self.worker = multiprocessing.Process(
             target=ScreenWorker, args=(self.outbox, self.inbox))
@@ -104,20 +106,17 @@ class ScreenToRGBApp(ttk.Frame):
         self.after(1, self.update)
 
         # load configs and create files if necessary
-        try:
-            with open("config/mapping.txt") as f:
-                self.slice_map = list(map(int, f.read().strip().split()))
-        except FileNotFoundError:
-            with open("config/mapping.txt", 'w') as f:
-                l = list(range(10))
-                self.slice_map = l[::-1] + l
-                f.write(' '.join(map(str, self.slice_map)))
-        self.user_slice_map.set(' '.join(map(str, self.slice_map)))
-        self.n_slices.set("10")
+        l = list(range(10))
+        self.slice_map = l[::-1] + l
+        self.user_slice_map.set(load_or_create(
+            "config/mapping.txt", ' '.join(map(str, self.slice_map))))
+        self.user_color_mods.set(load_or_create(
+            "config/color_curves.txt", "1 1 1"))
+        self.n_slices.set(load_or_create("config/screen_slices.txt", "10"))
 
     def create_widgets(self):
-        self.frame_a = ttk.Frame()
-        self.frame_b = ttk.Frame()
+        self.frame_top = ttk.Frame()
+        self.frame_bot = ttk.Frame()
         self.config_frame = ttk.Frame()
         self.config_frame_right = ttk.Frame(self.config_frame)
         self.config_frame_left = ttk.Frame(self.config_frame)
@@ -125,25 +124,27 @@ class ScreenToRGBApp(ttk.Frame):
         self.status2 = tk.StringVar()
 
         self.status_label1 = ttk.Label(
-            self.frame_b, textvariable=self.status1, width=80)
+            self.frame_bot, textvariable=self.status1, width=80)
         self.status_label2 = ttk.Label(
-            self.frame_b, textvariable=self.status2, width=80)
+            self.frame_bot, textvariable=self.status2, width=80)
         self.btn_start = ttk.Button(
-            self.frame_a, text="start", command=self.start_callback)
+            self.frame_top, text="start", command=self.start_callback)
         self.btn_stop = ttk.Button(
-            self.frame_a, text="stop", command=self.stop_callback)
+            self.frame_top, text="stop", command=self.stop_callback)
         self.btn_restart = ttk.Button(
-            self.frame_a, text="restart", command=self.restart_callback)
+            self.frame_top, text="restart", command=self.restart_callback)
 
         self.serial_list = tk.Listbox(self.config_frame_left)
         self.slices_entry = ttk.Entry(
             self.config_frame_right, textvariable=self.n_slices)
         self.slice_map_entry = ttk.Entry(
             self.config_frame_right, textvariable=self.user_slice_map)
+        self.color_mod_entry = ttk.Entry(
+            self.config_frame_right, textvariable=self.user_color_mods)
 
         self.console_area = tk.Text(self)
-        self.frame_a.pack()
-        self.frame_b.pack()
+        self.frame_top.pack(expand=0)
+        self.frame_bot.pack()
 
         self.config_frame.pack(fill="both")
         self.config_frame_left.pack(side="left")
@@ -157,6 +158,9 @@ class ScreenToRGBApp(ttk.Frame):
         ttk.Label(self.config_frame_right,
                   text="slice mapping").pack(side="top")
         self.slice_map_entry.pack(side="top", fill="both")
+        ttk.Label(self.config_frame_right,
+                  text="RGB color curves").pack(side="top")
+        self.color_mod_entry.pack()
 
         self.btn_start.pack(side="left")
         self.btn_stop.pack(side="left")
@@ -171,13 +175,15 @@ class ScreenToRGBApp(ttk.Frame):
             while not self.inbox.empty():
                 m = self.inbox.get(False)
                 # "1.0" means line 1 col 0
-                self.console_area.insert("1.0", m.data + "\n")
+                self.console_area.insert("1.0", ' '.join(
+                    [m.descriptor, m.text, m.data]) + "\n")
                 self.status2.set(m.data)
+                # print("GUI received:",m)
         except queue.Empty:
             pass
         # clear serial list
 
-        self.after(100, self.update)
+        self.after(1000, self.update)
         # print(self.con)
 
     def start_callback(self):
@@ -188,7 +194,9 @@ class ScreenToRGBApp(ttk.Frame):
             new_controller = controller.ScreenToRGB(port=selected_port)
             kwargs = {
                 "port": selected_port,
-                "n_slices": int(self.n_slices.get())
+                "n_slices": int(self.n_slices.get()),
+                "slice_mapping": list(map(int, self.user_slice_map.get().split())),
+                "color_mods": tuple(map(float, self.user_color_mods.get().split(' ')))
             }
             self.outbox.put(Message(descriptor="new_worker",
                                     data=(tuple(), kwargs), text="message to new worker with args"))
@@ -225,6 +233,16 @@ class ScreenToRGBApp(ttk.Frame):
     def on_closing(self):
         self.outbox.put(Message(descriptor="terminate", text=None, data=None))
         self.root.destroy()
+
+
+def load_or_create(fname, default=""):
+    try:
+        with open(fname) as f:
+            return f.read()
+    except FileNotFoundError:
+        with open(fname, 'w') as f:
+            f.write(default)
+        return default
 
 
 def main():
