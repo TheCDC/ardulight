@@ -43,25 +43,27 @@ def ScreenWorker(inqueue=None, outqueue=None):
             if m.descriptor == "play":
                 paused = False
             if m.descriptor == "new_worker":
-                del ScreenReader
+                if ScreenReader:
+                    ScreenReader.terminate()
+                time.sleep(0.1)
                 ScreenReader = controller.ScreenToRGB(*m.data[0], **m.data[1])
             if m.descriptor == "terminate":
                 return
         if not ScreenReader is None:
             if not paused:
                 if myalarm.alarm():
+                    myalarm.reset()
                     # print("stepping")
                     ti = time.time()
-                    myalarm.reset()
                     ScreenReader.step()
                     tf = time.time()
                     loop_time = tf - ti
                     loop_rate = 1 / (tf - ti)
                     error = (loop_rate - rate) / rate
-                    if error > 0.1:
-                        rate += 1
-                    elif error < -0.1:
-                        rate -= 1
+                    # if error > 0.1:
+                    #     rate += 1
+                    # elif error < -0.1:
+                    #     rate -= 1
                     outqueue.put(
                         Message(
                             "status",
@@ -69,11 +71,12 @@ def ScreenWorker(inqueue=None, outqueue=None):
                             "LoopT:{:.3f}, 1/T:{:.2f}, Error:{:.2f}, CurRate:{}".format(
                                 loop_time, loop_rate, error, rate
                             )
-                        )
+                        ),
+                        False
                     )
                     time.sleep(1 / rate)
         else:
-            time.sleep(0.2)
+            pass
 
 
 class ScreenToRGBApp(ttk.Frame):
@@ -86,24 +89,37 @@ class ScreenToRGBApp(ttk.Frame):
         self.root = master
         self.outbox = multiprocessing.Queue()
         self.inbox = multiprocessing.Queue()
-        self.user_slices = tk.StringVar()
+        self.n_slices = tk.StringVar()
+        self.user_slice_map = tk.StringVar()
         self.myscreener = None
         self.worker = multiprocessing.Process(
             target=ScreenWorker, args=(self.outbox, self.inbox))
 
         self.create_widgets()
         self.pack()
-        self.after(1, self.update)
         self.paused = True
         self.stop_callback()
         self.worker.start()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.after(1, self.update)
 
+        # load configs and create files if necessary
+        try:
+            with open("config/mapping.txt") as f:
+                self.slice_map = list(map(int, f.read().strip().split()))
+        except FileNotFoundError:
+            with open("config/mapping.txt", 'w') as f:
+                l = list(range(10))
+                self.slice_map = l[::-1] + l
+                f.write(' '.join(map(str, self.slice_map)))
+        self.user_slice_map.set(' '.join(map(str, self.slice_map)))
+        self.n_slices.set("10")
 
     def create_widgets(self):
         self.frame_a = ttk.Frame()
         self.frame_b = ttk.Frame()
         self.config_frame = ttk.Frame()
+        self.config_frame_right = ttk.Frame(self.config_frame)
         self.config_frame_left = ttk.Frame(self.config_frame)
         self.status1 = tk.StringVar()
         self.status2 = tk.StringVar()
@@ -116,22 +132,35 @@ class ScreenToRGBApp(ttk.Frame):
             self.frame_a, text="start", command=self.start_callback)
         self.btn_stop = ttk.Button(
             self.frame_a, text="stop", command=self.stop_callback)
-        self.slices_entry = tk.Entry(
-            self.config_frame_left, textvariable=self.user_slices)
-        self.serial_list = tk.Listbox(self.config_frame)
+        self.btn_restart = ttk.Button(
+            self.frame_a, text="restart", command=self.restart_callback)
+
+        self.serial_list = tk.Listbox(self.config_frame_left)
+        self.slices_entry = ttk.Entry(
+            self.config_frame_right, textvariable=self.n_slices)
+        self.slice_map_entry = ttk.Entry(
+            self.config_frame_right, textvariable=self.user_slice_map)
 
         self.console_area = tk.Text(self)
         self.frame_a.pack()
         self.frame_b.pack()
 
-        self.config_frame.pack()
-        self.config_frame_left.pack(side="right", fill="both")
-        ttk.Label(self.config_frame_left, text="num. screen slices").pack(side="top")
-        self.serial_list.pack(side="left")
-        self.slices_entry.pack(side="top")
+        self.config_frame.pack(fill="both")
+        self.config_frame_left.pack(side="left")
+        ttk.Label(self.config_frame_left,
+                  text="Port selection").pack(side="top")
+        self.config_frame_right.pack(side="right", expand=1, fill="both")
+        ttk.Label(self.config_frame_right,
+                  text="num. screen slices").pack(side="top")
+        self.serial_list.pack(side="bottom")
+        self.slices_entry.pack(side="top", fill="both")
+        ttk.Label(self.config_frame_right,
+                  text="slice mapping").pack(side="top")
+        self.slice_map_entry.pack(side="top", fill="both")
 
         self.btn_start.pack(side="left")
         self.btn_stop.pack(side="left")
+        self.btn_restart.pack(side="left")
         self.status_label1.pack()
         self.status_label2.pack(side="top")
         self.console_area.pack(fill="both")
@@ -148,7 +177,7 @@ class ScreenToRGBApp(ttk.Frame):
             pass
         # clear serial list
 
-        self.after(1000, self.update)
+        self.after(100, self.update)
         # print(self.con)
 
     def start_callback(self):
@@ -159,7 +188,7 @@ class ScreenToRGBApp(ttk.Frame):
             new_controller = controller.ScreenToRGB(port=selected_port)
             kwargs = {
                 "port": selected_port,
-                "n_slices": int(self.user_slices.get())
+                "n_slices": int(self.n_slices.get())
             }
             self.outbox.put(Message(descriptor="new_worker",
                                     data=(tuple(), kwargs), text="message to new worker with args"))
@@ -187,6 +216,11 @@ class ScreenToRGBApp(ttk.Frame):
         self.status1.set("Stopped")
         time.sleep(0.2)
         self.refresh_port_list()
+
+    def restart_callback(self):
+        self.stop_callback()
+        time.sleep(1)
+        self.start_callback()
 
     def on_closing(self):
         self.outbox.put(Message(descriptor="terminate", text=None, data=None))
