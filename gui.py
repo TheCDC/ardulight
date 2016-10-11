@@ -2,7 +2,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import sys
-import threading
 import multiprocessing
 import controller
 from collections import namedtuple
@@ -93,15 +92,16 @@ class ScreenToRGBApp(ttk.Frame):
         self.user_slice_map = tk.StringVar()
         self.user_color_mods = tk.StringVar()
         self.user_color_mods.set("1 1 1")
+        self.user_color_pow = tk.StringVar()
         self.myscreener = None
+
         self.worker = multiprocessing.Process(
             target=ScreenWorker, args=(self.outbox, self.inbox))
-
+        self.worker.start()
         self.create_widgets()
         self.pack()
         self.paused = True
         self.stop_callback()
-        self.worker.start()
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.after(1, self.update)
 
@@ -113,6 +113,7 @@ class ScreenToRGBApp(ttk.Frame):
         self.user_color_mods.set(load_or_create(
             "config/color_curves.txt", "1 1 1"))
         self.n_slices.set(load_or_create("config/screen_slices.txt", "10"))
+        self.user_color_pow.set(load_or_create("config/color_exponent.txt","2"))
 
     def create_widgets(self):
         self.frame_top = ttk.Frame()
@@ -139,6 +140,8 @@ class ScreenToRGBApp(ttk.Frame):
             self.config_frame_right, textvariable=self.n_slices)
         self.slice_map_entry = ttk.Entry(
             self.config_frame_right, textvariable=self.user_slice_map)
+        self.color_pow_entry = ttk.Entry(
+            self.config_frame_right, textvariable=self.user_color_pow)
         self.color_mod_entry = ttk.Entry(
             self.config_frame_right, textvariable=self.user_color_mods)
 
@@ -158,6 +161,8 @@ class ScreenToRGBApp(ttk.Frame):
         ttk.Label(self.config_frame_right,
                   text="slice mapping").pack(side="top")
         self.slice_map_entry.pack(side="top", fill="both")
+        ttk.Label(self.config_frame_right, text="Color curve exponent").pack()
+        self.color_pow_entry.pack()
         ttk.Label(self.config_frame_right,
                   text="RGB color curves").pack(side="top")
         self.color_mod_entry.pack()
@@ -196,11 +201,16 @@ class ScreenToRGBApp(ttk.Frame):
                 "port": selected_port,
                 "n_slices": int(self.n_slices.get()),
                 "slice_mapping": list(map(int, self.user_slice_map.get().split())),
-                "color_mods": tuple(map(float, self.user_color_mods.get().split(' ')))
+                "color_mods": tuple(map(float, self.user_color_mods.get().split(' '))),
+                "color_pow": float(self.user_color_pow.get())
             }
             self.outbox.put(Message(descriptor="new_worker",
                                     data=(tuple(), kwargs), text="message to new worker with args"))
             self.outbox.put(Message("play", None, None))
+            self.worker = multiprocessing.Process(
+                target=ScreenWorker, args=(self.outbox, self.inbox))
+            self.worker.start()
+
             self.paused = False
             self.status1.set(
                 '\n'.join(textwrap.wrap(repr(new_controller), 70)))
@@ -222,7 +232,8 @@ class ScreenToRGBApp(ttk.Frame):
         self.status2.set("")
         self.paused = True
         self.status1.set("Stopped")
-        time.sleep(0.2)
+        self.worker.terminate()
+
         self.refresh_port_list()
 
     def restart_callback(self):
