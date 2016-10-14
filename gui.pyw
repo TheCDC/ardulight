@@ -181,7 +181,7 @@ class ScreenToRGBApp(ttk.Frame):
                 m = self.inbox.get(False)
                 # "1.0" means line 1 col 0
                 self.console_area.insert("1.0", ' '.join(
-                    [m.descriptor, m.text, m.data]) + "\n")
+                    [m.data]) + "\n")
                 self.status2.set(m.data)
                 # print("GUI received:",m)
         except queue.Empty:
