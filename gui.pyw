@@ -10,7 +10,7 @@ import SerialDetector
 import serial
 import time
 import textwrap
-
+from PIL import Image
 # class Message():
 #     def __init__(self,descriptor=None,text=None,data=None):
 #         self.descriptor = descriptor
@@ -28,25 +28,35 @@ def ScreenWorker(inqueue=None, outqueue=None):
     while True:
         while not inqueue.empty():
             m = inqueue.get()
-            print("Worker received:", m)
+            # print("Worker received:", m)
             if m.descriptor == "pause":
                 paused = True
-                # print("pausing")
+                # print("pausing", paused)
                 try:
                     ScreenReader.terminate()
                 except AttributeError:
                     pass
-            if m.descriptor == "play":
+            elif m.descriptor == "play":
+                outqueue.put(Message("status", "starting", ""))
                 paused = False
-            if m.descriptor == "new_worker":
+            elif m.descriptor == "new_worker":
                 if ScreenReader:
                     ScreenReader.terminate()
-                time.sleep(0.1)
+                time.sleep(0.2)
                 ScreenReader = controller.ScreenToRGB(*m.data[0], **m.data[1])
-            if m.descriptor == "terminate":
+            elif m.descriptor == "terminate":
                 return
+            else:
+                outqueue.put(
+                    Message(
+                        "error",
+                        "invalid command sent to worker",
+                        "INVALID:"+repr(m)
+                    )
+                )
         if not ScreenReader is None:
             if not paused:
+                # print("paused:", paused)
                 if myalarm.alarm():
                     myalarm.reset()
                     # print("stepping")
@@ -57,10 +67,10 @@ def ScreenWorker(inqueue=None, outqueue=None):
                         loop_time = tf - ti
                         loop_rate = 1 / (tf - ti)
                         error = (loop_rate - rate) / rate
-                        # if error > 0.1:
-                        #     rate += 1
-                        # elif error < -0.1:
-                        #     rate -= 1
+                        if error > 0.1:
+                            rate += 1
+                        elif error < -0.1:
+                            rate -= 1
                         outqueue.put(
                             Message(
                                 "status",
@@ -113,7 +123,8 @@ class ScreenToRGBApp(ttk.Frame):
         self.user_color_mods.set(load_or_create(
             "config/color_curves.txt", "1 1 1"))
         self.n_slices.set(load_or_create("config/screen_slices.txt", "10"))
-        self.user_color_pow.set(load_or_create("config/color_exponent.txt","2"))
+        self.user_color_pow.set(load_or_create(
+            "config/color_exponent.txt", "2"))
 
     def create_widgets(self):
         self.frame_top = ttk.Frame()
@@ -176,16 +187,16 @@ class ScreenToRGBApp(ttk.Frame):
 
     def update(self):
         # self.status1.set("test{}".format(self.count))
-        try:
-            while not self.inbox.empty():
-                m = self.inbox.get(False)
-                # "1.0" means line 1 col 0
-                self.console_area.insert("1.0", ' '.join(
-                    [m.data]) + "\n")
-                self.status2.set(m.data)
-                # print("GUI received:",m)
-        except queue.Empty:
-            pass
+        while not self.inbox.empty():
+            m = self.inbox.get(False)
+            # "1.0" means line 1 col 0
+            self.console_area.insert("1.0", ' '.join(
+                [m.data]) + "\n")
+            self.status2.set(m.data)
+            # print("GUI received:",m)
+        # try:
+        # except queue.Empty:
+        #     pass
         # clear serial list
 
         self.after(1000, self.update)
@@ -207,9 +218,9 @@ class ScreenToRGBApp(ttk.Frame):
             self.outbox.put(Message(descriptor="new_worker",
                                     data=(tuple(), kwargs), text="message to new worker with args"))
             self.outbox.put(Message("play", None, None))
-            self.worker = multiprocessing.Process(
-                target=ScreenWorker, args=(self.outbox, self.inbox))
-            self.worker.start()
+            # self.worker = multiprocessing.Process(
+            #     target=ScreenWorker, args=(self.outbox, self.inbox))
+            # self.worker.start()
 
             self.paused = False
             self.status1.set(
@@ -232,9 +243,11 @@ class ScreenToRGBApp(ttk.Frame):
         self.status2.set("")
         self.paused = True
         self.status1.set("Stopped")
-        self.worker.terminate()
-
+        # self.worker.terminate()
+        time.sleep(0.1)
         self.refresh_port_list()
+        # self.after(1000, self.refresh_port_list())
+        # im = Image.new("RGB",(int(self.n_slices.get()),1))
 
     def restart_callback(self):
         self.stop_callback()
@@ -243,6 +256,8 @@ class ScreenToRGBApp(ttk.Frame):
 
     def on_closing(self):
         self.outbox.put(Message(descriptor="terminate", text=None, data=None))
+        self.worker.terminate()
+        self.worker.join()
         self.root.destroy()
 
 

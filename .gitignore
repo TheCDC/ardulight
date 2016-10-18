@@ -2,5 +2,7 @@ __pycache__*
 __pycache__/*
 dist/*
 build/*
-debug/*
+debug/*.png
 config/*.txt
+build/*
+dist/*
