@@ -57,28 +57,28 @@ class ScreenToRGB():
         self.myserial = serial.Serial(port=port, baudrate=baudrate)
 
     def step(self):
-        im = shoot()
+        self.im = shoot()
 
         # Split the screen into N vertical strips.
         # Assign the average color of each strip to
         # its respective LED.
-        colors = extract_colors(im,
-                                self.n_slices,
-                                power=self.color_pow,
-                                mode=self.color_scale_type,
-                                balance=self.balance_color,
-                                mods=self.color_mods)
-        slices = []
+        self.colors = extract_colors(self.im,
+                                     self.n_slices,
+                                     power=self.color_pow,
+                                     mode=self.color_scale_type,
+                                     balance=self.balance_color,
+                                     mods=self.color_mods)
+        self.slices = []
         if self.slice_mapping:
             for m in self.slice_mapping:
-                slices.append(colors[m])
+                self.slices.append(self.colors[m])
         else:
-            slices = colors[::-1] + colors
+            self.slices = colors[::-1] + colors
         # send a single string telling the 'duino to switch modes,
         # and also the colors for each LED
         self.myserial.write((
             "-2\n" + '\n'.join([
-                str(i) for i in slices
+                str(i) for i in self.slices
             ])
         ).encode(encoding="UTF-8"))
         # Throw away all the incoming serial data.
@@ -88,13 +88,13 @@ class ScreenToRGB():
 
     def __repr__(self):
         return "ScreenToRGB(port=\"{}\", baudrate={}, n_slices={}, color_scale_type=\"{}\", color_pow={}, color_eccen={}, balance_color={}, color_mods={})".format(self.port,
-                                                                                                                                                                    self.baudrate,
-                                                                                                                                                                    self.n_slices,
-                                                                                                                                                                    self.color_scale_type,
-                                                                                                                                                                    self.color_pow,
-                                                                                                                                                                    self.color_eccen,
-                                                                                                                                                                    self.balance_color,
-                                                                                                                                                                    self.color_mods)
+                                                                                                                                                                   self.baudrate,
+                                                                                                                                                                   self.n_slices,
+                                                                                                                                                                   self.color_scale_type,
+                                                                                                                                                                   self.color_pow,
+                                                                                                                                                                   self.color_eccen,
+                                                                                                                                                                   self.balance_color,
+                                                                                                                                                                   self.color_mods)
 
 
 def user_pick_list(l):

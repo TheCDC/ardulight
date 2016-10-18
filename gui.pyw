@@ -11,7 +11,7 @@ import serial
 import time
 import textwrap
 from PIL import Image
-# class Message():
+# class Message(): 
 #     def __init__(self,descriptor=None,text=None,data=None):
 #         self.descriptor = descriptor
 #         self.text = text
@@ -32,10 +32,14 @@ def ScreenWorker(inqueue=None, outqueue=None):
             if m.descriptor == "pause":
                 paused = True
                 # print("pausing", paused)
-                try:
+                if ScreenReader:
                     ScreenReader.terminate()
-                except AttributeError:
-                    pass
+                    ScreenReader.im.save("debug/stopped.png")
+                    im = Image.new("RGB",(ScreenReader.n_slices,1))
+                    pixels = im.load()
+                    for i,c in enumerate(ScreenReader.colors):
+                        pixels[i,0] = c 
+                    im.save("debug/colors.png")
             elif m.descriptor == "play":
                 outqueue.put(Message("status", "starting", ""))
                 paused = False
