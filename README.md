@@ -19,6 +19,7 @@ Python libraries:
 pillow
 pyserial
 pyscreenshot
+multiprocessing
 ```
 
 Run `install.bat` on Windows or `install.sh` on Linux to install them. 
@@ -28,6 +29,8 @@ Upload the arduino program found in `pc_rgb_controller` to your arduino.
 Make sure to install the dependencies. Please.
 
 #Usage
+There's a GUI now! Run `gui.pyw` to use it. Beware that there is a performance hit from using it and it will require you to have multiprocessing. I'm working on the performance and don't yet know why performance is so much worse with the GUI.
+
 Run the appropriate launch script for your OS: `run.sh` for *nix and `run.bat` for Windows.
 If you have multiple serial devices connected the command line interface asks you to choose one.
 Make sure to choose the serial port connected to your Arduino.
@@ -49,7 +52,7 @@ There are also ways to write colors to individual pixel.
 
 Integers sent over serial should be separated by newlines.
 
-A state machine diagram of the input system:
+A state machine diagram of the arduino input system:
 ![state machine](pc_rgb_controller/Arduino_PC_Lighting.png)
 
 An example command to the 'duino might look like this: `16777215`. A single positive integer sent over serial will be interpreted as a "packed" RGB value. That particular value is (255,255,255), or white.
