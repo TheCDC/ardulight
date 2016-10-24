@@ -11,11 +11,22 @@ import serial
 import time
 import textwrap
 from PIL import Image
-# class Message(): 
+# class Message():
 #     def __init__(self,descriptor=None,text=None,data=None):
 #         self.descriptor = descriptor
 #         self.text = text
-#         self.data = data
+#         self.data = data'
+
+
+def load_or_create(fname, default=""):
+    try:
+        with open(fname) as f:
+            return f.read()
+    except FileNotFoundError:
+        with open(fname, 'w') as f:
+            f.write(default)
+        return default
+
 Message = namedtuple("Message", ["descriptor", "text", "data"])
 
 
@@ -35,10 +46,10 @@ def ScreenWorker(inqueue=None, outqueue=None):
                 if ScreenReader:
                     ScreenReader.terminate()
                     ScreenReader.im.save("debug/stopped.png")
-                    im = Image.new("RGB",(ScreenReader.n_slices,1))
+                    im = Image.new("RGB", (ScreenReader.n_slices, 1))
                     pixels = im.load()
-                    for i,c in enumerate(ScreenReader.colors):
-                        pixels[i,0] = c 
+                    for i, c in enumerate(ScreenReader.colors):
+                        pixels[i, 0] = c
                     im.save("debug/colors.png")
             elif m.descriptor == "play":
                 outqueue.put(Message("status", "starting", ""))
@@ -55,7 +66,7 @@ def ScreenWorker(inqueue=None, outqueue=None):
                     Message(
                         "error",
                         "invalid command sent to worker",
-                        "INVALID:"+repr(m)
+                        "INVALID:" + repr(m)
                     )
                 )
         if not ScreenReader is None:
@@ -251,7 +262,7 @@ class ScreenToRGBApp(ttk.Frame):
         # self.worker.terminate()
         time.sleep(0.1)
         self.refresh_port_list()
-        # self.after(1000, self.refresh_port_list())
+        # self.after(1000, self.refresh_port_list()v)
         # im = Image.new("RGB",(int(self.n_slices.get()),1))
 
     def restart_callback(self):
@@ -264,16 +275,6 @@ class ScreenToRGBApp(ttk.Frame):
         self.worker.terminate()
         self.worker.join()
         self.root.destroy()
-
-
-def load_or_create(fname, default=""):
-    try:
-        with open(fname) as f:
-            return f.read()
-    except FileNotFoundError:
-        with open(fname, 'w') as f:
-            f.write(default)
-        return default
 
 
 def main():
