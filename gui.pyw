@@ -85,7 +85,6 @@ def ScreenWorker(inqueue=None, outqueue=None):
                             ),
                             False
                         )
-                        time.sleep(1 / rate)
                     except IndexError:
                         outqueue.put(Message("error", "INVALID MAPPING!", ""))
         else:
@@ -179,7 +178,7 @@ class ScreenToRGBApp(ttk.Frame):
         ttk.Label(self.config_frame_right, text="Color curve exponent").pack()
         self.color_pow_entry.pack()
         ttk.Label(self.config_frame_right,
-                  text="RGB color curves").pack(side="top")
+                  text="RGB channel adjustments").pack(side="top")
         self.color_mod_entry.pack()
 
         self.btn_start.pack(side="left")
@@ -219,16 +218,18 @@ class ScreenToRGBApp(ttk.Frame):
                 "color_mods": tuple(map(float, self.user_color_mods.get().split(' '))),
                 "color_pow": float(self.user_color_pow.get())
             }
+            args = tuple()
             self.outbox.put(Message(descriptor="new_worker",
-                                    data=(tuple(), kwargs), text="message to new worker with args"))
+                                    data=(args, kwargs), text="message to new worker with args"))
             self.outbox.put(Message("play", None, None))
             # self.worker = multiprocessing.Process(
             #     target=ScreenWorker, args=(self.outbox, self.inbox))
             # self.worker.start()
 
             self.paused = False
-            self.status1.set(
-                '\n'.join(textwrap.wrap(repr(new_controller), 70)))
+            # self.status1.set(
+            #     '\n'.join(textwrap.wrap(repr(new_controller), 70)))
+            self.status1.set("Started")
         except IndexError:
             self.status1.set("Please select a port")
         except serial.serialutil.SerialException as e:

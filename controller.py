@@ -33,6 +33,26 @@ class Alarm():
         self.dur = t
 
 
+class Controller():
+
+    def __init__(self,
+                 port="COM15",
+                 baudrate=115200,):
+        self.port = port
+        self.baudrate = baudrate
+        self.connection = serial.Serial(port=port, baudrate=baudrate)
+
+    def terminate(self):
+        self.connection.close()
+
+    def write_frame(self, colors):
+        """Take a list of RGB tuples and write them out to the 'duino via serial."""
+        self.connection.write("-2\n".encode(encoding="UTF-8"))
+        for c in colors:
+            self.connection.write(
+                (str(pack_rgb(c)) + "\n").encode(encoding="UTF-8"))
+
+
 class ScreenToRGB():
 
     def __init__(self, *,
@@ -47,6 +67,8 @@ class ScreenToRGB():
                  color_mods=(1, 1, 1)):
         self.port = port
         self.baudrate = baudrate
+        self.connection = Controller(port=self.port, baudrate=self.baudrate)
+
         self.n_slices = n_slices
         self.slice_mapping = slice_mapping
         self.color_scale_type = color_scale_type
@@ -54,7 +76,6 @@ class ScreenToRGB():
         self.color_eccen = color_eccen
         self.balance_color = balance_color
         self.color_mods = color_mods
-        self.myserial = serial.Serial(port=port, baudrate=baudrate)
 
     def step(self):
         self.im = shoot()
@@ -73,18 +94,12 @@ class ScreenToRGB():
             for m in self.slice_mapping:
                 self.slices.append(self.colors[m])
         else:
-            self.slices = colors[::-1] + colors
-        # send a single string telling the 'duino to switch modes,
-        # and also the colors for each LED
-        self.myserial.write((
-            "-2\n" + '\n'.join([
-                str(i) for i in self.slices
-            ])
-        ).encode(encoding="UTF-8"))
-        # Throw away all the incoming serial data.
+            self.slices = self.colors[::-1] + self.colors
+        self.connection.write_frame(self.slices)
+        return self.slices[:]
 
     def terminate(self):
-        self.myserial.close()
+        self.connection.close()
 
     def __repr__(self):
         return "ScreenToRGB(port=\"{}\", baudrate={}, n_slices={}, color_scale_type=\"{}\", color_pow={}, color_eccen={}, balance_color={}, color_mods={})".format(self.port,
@@ -120,8 +135,16 @@ def user_pick_list(l):
         return l[int(response)]
 
 
-def pack_rgb(r, g, b):
+def pack_rgb(r, g=None, b=None):
     """Take RGB values and 'pack' them into a 24-bit number."""
+    if isinstance(r, tuple):
+        b = r[2]
+        g = r[1]
+        r = r[0]
+    elif isinstance(r,int):
+        pass
+    else:
+        raise ValueError("Colors must be three ints or a single tuple, not {}".format(type(r)))
     return r << 16 | g << 8 | b
 
 
@@ -151,7 +174,7 @@ def scale_poly(c, power=1, eccen=1):
     return int(((c / 255)**(power * eccen)) * 255)
 
 
-def rescale_c(color, power=2, mode="poly", balance=True, mods=(0.7, 0.8, 1)):
+def reshape_color(color, power=2, mode="poly", balance=True, mods=(0.7, 0.8, 1)):
     """Change the shape of the curve of a color
     Higher powers will put more distance between dark and light.
     This is recommended.
@@ -172,6 +195,10 @@ def rescale_c(color, power=2, mode="poly", balance=True, mods=(0.7, 0.8, 1)):
             scale_trig(c, power, eccen)
             for c, eccen in zip(color, mods)
         ])
+
+
+def rescale_rgb(c):
+    return list(map(reshape_color, c))
 
 
 def choose_serial(testing=False, port=""):
@@ -220,9 +247,8 @@ def extract_colors(im,
         # Given that the image is 1x1, get the color of that one pixel.
         c = tempimg.getpixel((0, 0))
         # Run it through the
-        c = pack_rgb(
-            *rescale_c(c, power=power, mode=mode, balance=balance, mods=mods))
-        colors.append(c)
+        colors.append(reshape_color(c, power=power,
+                                    mode=mode, balance=balance, mods=mods))
     return colors
 
 
@@ -238,7 +264,7 @@ def main(*, testing=False, port="COM6", target_rate=20):
         the arduino over the serial connection.
     """
     DEBUG = False
-    myport = choose_serial(testing, port=port)
+    # myport = choose_serial(testing, port=port)
     rate = target_rate
     myalarm = Alarm(1 / rate)
     # stuff for tracking performance
@@ -246,29 +272,34 @@ def main(*, testing=False, port="COM6", target_rate=20):
     tf = ti
     N = 10
     error = 1
+    my_controller = ScreenToRGB(
+        port=user_pick_list(SerialDetector.serial_ports()),
+        n_slices=10,
+        slice_mapping=list(
+            map(int, "9 8 7 6 5 4 3 2 1 0 0 1 2 3 4 5 6 7 8 9".split(' '))),
+        color_pow=2,
+        color_mods=(1, 1, 1,)
+    )
     while True:
         try:
             if myalarm.alarm():
                 ti = time.time()
                 myalarm.reset()
+                my_controller.step()
 
-                im = shoot()
-
-                # Split the screen into N vertical strips.
-                # Assign the average color of each strip to
-                # its respective LED.
-                colors = extract_colors(im, N)
-                colors = colors[::-1] + colors
-                # send a single string telling the 'duino to switch modes,
-                # and also the colors for each LED
-                myport.write((
-                    "-2\n" + '\n'.join([
-                        str(i) for i in colors
-                    ])
-                ).encode(encoding="UTF-8"))
-                # Throw away all the incoming serial data.
-
-                read_available(myport)
+                # im = shoot()
+                # # # Split the screen into N vertical strips.
+                # # Assign the average color of each strip to
+                # # its respective LED.
+                # colors = extract_colors(im, N)
+                # colors = colors[::-1] + colors
+                # # send a single string telling the 'duino to switch modes,
+                # # and also the colors for each LED
+                # print(myport.write((
+                #                     "-2\n" + '\n'.join(map(str,colors))
+                #                 ).encode(encoding="UTF-8")))
+                # # Throw away all the incoming serial data.
+                # read_available(myport)
 
                 tf = time.time()
                 # Some debug data.
@@ -303,7 +334,7 @@ def main(*, testing=False, port="COM6", target_rate=20):
         except KeyboardInterrupt:
             # quit cleanly
             print("Have a nice day!")
-            im.save("debug/out.png")
+            # im.save("debug/out.png")
             quit()
 
         if DEBUG:
