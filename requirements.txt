@@ -1,4 +1,4 @@
 pillow
 pyserial
 pyscreenshot
-multiprocessing
+git+git://github.com/uqfoundation/multiprocess.git

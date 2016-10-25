@@ -34,26 +34,35 @@ class Alarm():
 
 
 class Controller():
+    """Handles the serial connection and translating RGB tuples into packed numeric output."""
 
     def __init__(self,
                  port="COM15",
                  baudrate=115200,):
         self.port = port
         self.baudrate = baudrate
-        self.connection = serial.Serial(port=port, baudrate=baudrate)
+        self.open()
 
     def terminate(self):
-        self.connection.close()
+        self.serial.close()
 
     def write_frame(self, colors):
         """Take a list of RGB tuples and write them out to the 'duino via serial."""
-        self.connection.write("-2\n".encode(encoding="UTF-8"))
+        self.serial.write("-2\n".encode(encoding="UTF-8"))
         for c in colors:
-            self.connection.write(
+            self.serial.write(
                 (str(pack_rgb(c)) + "\n").encode(encoding="UTF-8"))
+
+    def close(self):
+        self.terminate()
+
+    def open(self):
+        self.serial = serial.Serial(port=self.port, baudrate=self.baudrate)
 
 
 class ScreenToRGB():
+    """Handles capturing the screen and processing slices to send to 
+    Arduino through a Controller."""
 
     def __init__(self, *,
                  port="COM15",
@@ -76,6 +85,9 @@ class ScreenToRGB():
         self.color_eccen = color_eccen
         self.balance_color = balance_color
         self.color_mods = color_mods
+        self.im = None
+        self.slices = []
+        self.colors = []
 
     def step(self):
         self.im = shoot()
@@ -141,10 +153,11 @@ def pack_rgb(r, g=None, b=None):
         b = r[2]
         g = r[1]
         r = r[0]
-    elif isinstance(r,int):
+    elif isinstance(r, int):
         pass
     else:
-        raise ValueError("Colors must be three ints or a single tuple, not {}".format(type(r)))
+        raise ValueError(
+            "Colors must be three ints or a single tuple, not {}".format(type(r)))
     return r << 16 | g << 8 | b
 
 
