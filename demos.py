@@ -84,9 +84,9 @@ def main():
     #      time.sleep(0.01)
     while True:
         try:
+            ani_wheel(n=10,  connection=connection)
             ani_sinwave(n=45, t=1, resolution=10, connection=connection)
             ani_wheel_slice(n=500, t=60, connection=connection)
-            ani_wheel(n=10, w=1, connection=connection)
 
         except KeyboardInterrupt:
             connection.terminate()
