@@ -57,7 +57,8 @@ class Controller():
         self.terminate()
 
     def open(self):
-        self.serial = serial.Serial(port=self.port, baudrate=self.baudrate)
+        self.serial = serial.Serial(
+            port=self.port, baudrate=self.baudrate, write_timeout=1)
 
 
 class ScreenToRGB():

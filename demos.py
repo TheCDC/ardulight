@@ -16,9 +16,10 @@ def remap(colors):
 
 def rgb_float_to_int(rgb):
     return tuple(map(lambda c: int(c * 255), rgb))
-    
+
 try:
     NUMPIXELS = len(load_or_create("config/mapping.txt", None).split(" "))
+    print("NUMPIXELS=", NUMPIXELS)
 except TypeError:
     raise RuntimeError("Run the GUI to generate config files!")
 
@@ -41,9 +42,9 @@ def main():
             # moving hump of color
             N = 45
             for n in range(N):
-                T = 2
+                T = 1
                 c = randcolor()
-                res = 10
+                res = 5
                 for i in range(NUMPIXELS * res):
                     cs = []
                     for j in range(NUMPIXELS):
@@ -52,13 +53,14 @@ def main():
                     # cs = [(0, 0, 0)] * NUMPIXELS
                     # cs[i] = c
                     connection.write_frame(cs)
-                    time.sleep(T / (NUMPIXELS * res))
+                    dt = T / (NUMPIXELS * res)
+                    time.sleep(dt)
             # slice of the color wheel
             N = 10
             width = 1
             for nn in range(N * 4, 0, -2):
                 numsteps = 100
-                T = 5
+                T = 1
                 width = nn / N
                 for i in range(numsteps):
                     cs = list(map(lambda x: rgb_float_to_int(colorsys.hsv_to_rgb(

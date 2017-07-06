@@ -6,3 +6,4 @@ debug/*.png
 config/*.txt
 build/*
 dist/*
+env/*
