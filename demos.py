@@ -25,11 +25,11 @@ except TypeError:
     raise RuntimeError("Run the GUI to generate config files!")
 
 
-def default_pixels():
-    return [(0, 0, 0,) for i in range(NUMPIXELS)]
+def default_pixels(num_pixels=NUMPIXELS):
+    return [(0, 0, 0,) for i in range(num_pixels)]
 
 
-def ani_wheel(n, w, connection):
+def ani_wheel(n, connection, num_pixels=NUMPIXELS):
     # single color that goes around the wheel
     cs = default_pixels()
     for nn in range(n * 4, 0, -2):
@@ -38,7 +38,7 @@ def ani_wheel(n, w, connection):
         width = nn / n
         for i in range(numsteps):
             cs = list(map(lambda x: rgb_float_to_int(colorsys.hsv_to_rgb(
-                (x) / (NUMPIXELS * width) + i / numsteps, 1, 1)), range(NUMPIXELS)))
+                (x) / (num_pixels * width) + i / numsteps, 1, 1)), range(num_pixels)))
             connection.write_frame(cs)
             # cs.append(cs.pop(0))
             time.sleep(T / numsteps)
@@ -56,20 +56,20 @@ def ani_wheel_slice(n, t, connection):
         time.sleep(delta_t)
 
 
-def ani_sinwave(n, t, resolution, connection):
+def ani_sinwave(n, t, resolution, connection, num_pixels=NUMPIXELS):
     # moving hump of color
 
     for n in range(n):
         c = randcolor()
-        for i in range(NUMPIXELS * resolution):
+        for i in range(num_pixels * resolution):
             cs = []
-            for j in range(NUMPIXELS):
+            for j in range(num_pixels):
                 cs.append(
                     tuple(map(lambda x: int(x / (1 + abs(i / resolution - j))**(2)), c)))
-            # cs = [(0, 0, 0)] * NUMPIXELS
+            # cs = [(0, 0, 0)] * num_pixels
             # cs[i] = c
             connection.write_frame(cs)
-            dt = t / (NUMPIXELS * resolution)
+            dt = t / (num_pixels * resolution)
             time.sleep(dt)
 
 
@@ -84,12 +84,14 @@ def main():
     #      time.sleep(0.01)
     while True:
         try:
-            ani_sinwave(n=45, t=1, resolution=5, connection=connection)
-            ani_wheel(n=10, w=1, connection=connection)
+            ani_sinwave(n=45, t=1, resolution=10, connection=connection)
             ani_wheel_slice(n=500, t=60, connection=connection)
+            ani_wheel(n=10, w=1, connection=connection)
 
         except KeyboardInterrupt:
             connection.terminate()
             quit()
+
+
 if __name__ == '__main__':
     main()
