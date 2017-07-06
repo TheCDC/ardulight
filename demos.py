@@ -17,6 +17,7 @@ def remap(colors):
 def rgb_float_to_int(rgb):
     return tuple(map(lambda c: int(c * 255), rgb))
 
+
 try:
     NUMPIXELS = len(load_or_create("config/mapping.txt", None).split(" "))
     print("NUMPIXELS=", NUMPIXELS)
