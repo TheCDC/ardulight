@@ -40,22 +40,6 @@ def main():
     cs = [(0, 0, 0,) for i in range(NUMPIXELS)]
     while True:
         try:
-            # moving hump of color
-            N = 45
-            for n in range(N):
-                T = 1
-                c = randcolor()
-                res = 5
-                for i in range(NUMPIXELS * res):
-                    cs = []
-                    for j in range(NUMPIXELS):
-                        cs.append(
-                            tuple(map(lambda x: int(x / (1 + abs(i / res - j))**2), c)))
-                    # cs = [(0, 0, 0)] * NUMPIXELS
-                    # cs[i] = c
-                    connection.write_frame(cs)
-                    dt = T / (NUMPIXELS * res)
-                    time.sleep(dt)
             # slice of the color wheel
             N = 10
             width = 1
@@ -69,6 +53,22 @@ def main():
                     connection.write_frame(cs)
                     # cs.append(cs.pop(0))
                     time.sleep(T / numsteps)
+            # moving hump of color
+            N = 45
+            for n in range(N):
+                T = 1
+                c = randcolor()
+                res = 5
+                for i in range(NUMPIXELS * res):
+                    cs = []
+                    for j in range(NUMPIXELS):
+                        cs.append(
+                            tuple(map(lambda x: int(x / (1 + abs(i / res - j))**(2)), c)))
+                    # cs = [(0, 0, 0)] * NUMPIXELS
+                    # cs[i] = c
+                    connection.write_frame(cs)
+                    dt = T / (NUMPIXELS * res)
+                    time.sleep(dt)
             # single color that goes around the wheel
             n = 500
             T = 60
