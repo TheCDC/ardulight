@@ -31,6 +31,7 @@ def default_pixels(num_pixels=NUMPIXELS):
 
 def ani_wheel(n, connection, num_pixels=NUMPIXELS):
     # single color that goes around the wheel
+    print(locals())
     cs = default_pixels()
     for nn in range(n * 4, 0, -2):
         numsteps = 100
@@ -46,6 +47,7 @@ def ani_wheel(n, connection, num_pixels=NUMPIXELS):
 
 def ani_wheel_slice(n, t, connection):
     # slice of the color wheel
+    print(locals())
     cs = default_pixels()
     delta_t = t / n
     for i in range(n):
@@ -56,16 +58,23 @@ def ani_wheel_slice(n, t, connection):
         time.sleep(delta_t)
 
 
-def ani_sinwave(n, t, resolution, connection, num_pixels=NUMPIXELS):
+def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS):
     # moving hump of color
-
-    for n in range(n):
+    """n: number of cycles to perform.
+    t: total duration of each cycle
+    resolution: sub pixel resolution. Decrease if animation is slower than intended.
+    connection: serial connection object
+    power: exponent for decay rate of brightness of pixels as distance from hump increases
+    """
+    print(locals())
+    print("yes")
+    for nn in range(n):
         c = randcolor()
         for i in range(num_pixels * resolution):
             cs = []
             for j in range(num_pixels):
                 cs.append(
-                    tuple(map(lambda x: int(x / (1 + abs(i / resolution - j))**(2)), c)))
+                    tuple(map(lambda x: int(x / (1 + abs(i / resolution - j))**(power)), c)))
             # cs = [(0, 0, 0)] * num_pixels
             # cs[i] = c
             connection.write_frame(cs)
@@ -74,7 +83,6 @@ def ani_sinwave(n, t, resolution, connection, num_pixels=NUMPIXELS):
 
 
 def main():
-
     connection = controller.Controller(
         port=controller.user_pick_list(SerialDetector.serial_ports()),
         baudrate=115200)
@@ -84,8 +92,10 @@ def main():
     #      time.sleep(0.01)
     while True:
         try:
+            for i in [2 * (0.5)**i for i in range(1, 3)]:
+                ani_sinwave(n=int(60/i), t=i, resolution=2,
+                            power=2, connection=connection)
             ani_wheel(n=10,  connection=connection)
-            ani_sinwave(n=45, t=2, resolution=10, connection=connection)
             ani_wheel_slice(n=500, t=60, connection=connection)
 
         except KeyboardInterrupt:
