@@ -48,10 +48,25 @@ class Controller():
 
     def write_frame(self, colors):
         """Take a list of RGB tuples and write them out to the 'duino via serial."""
-        self.serial.write("-2\n".encode(encoding="UTF-8"))
-        for c in colors:
-            self.serial.write(
-                (str(pack_rgb(c)) + "\n").encode(encoding="UTF-8"))
+        attempts_remaining = 10
+        while attempts_remaining > 0:
+            try:
+                self.serial.write("-2\n".encode(encoding="UTF-8"))
+                for c in colors:
+                    self.serial.write(
+                        (str(pack_rgb(c)) + "\n").encode(encoding="UTF-8"))
+                return
+            except serial.serialutil.SerialException as e:
+                attempts_remaining -= 1
+                self.close()
+                time.sleep(1)
+                try:
+                    self.open()
+                except serial.serialutil.SerialException:
+                    pass
+                if attempts_remaining == 0:
+                    raise RuntimeError(
+                        "The controller attempted to recover from a disconnect but failed.\n{}".format(e))
 
     def close(self):
         self.terminate()
