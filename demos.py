@@ -67,7 +67,6 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS):
     power: exponent for decay rate of brightness of pixels as distance from hump increases
     """
     print(locals())
-    print("yes")
     for nn in range(n):
         c = randcolor()
         for i in range(num_pixels * resolution):
