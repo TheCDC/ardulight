@@ -29,20 +29,20 @@ def default_pixels(num_pixels=NUMPIXELS):
     return [(0, 0, 0,) for i in range(num_pixels)]
 
 
-def ani_wheel(n, connection, num_pixels=NUMPIXELS):
+def ani_wheel(n, t, connection, num_pixels=NUMPIXELS):
     # single color that goes around the wheel
     print(locals())
     cs = default_pixels()
     for nn in range(n * 4, 0, -2):
         numsteps = 100
-        T = 5
+
         width = nn / n
         for i in range(numsteps):
             cs = list(map(lambda x: rgb_float_to_int(colorsys.hsv_to_rgb(
                 (x) / (num_pixels * width) + i / numsteps, 1, 1)), range(num_pixels)))
             connection.write_frame(cs)
             # cs.append(cs.pop(0))
-            time.sleep(T / numsteps)
+            time.sleep(t / numsteps)
 
 
 def ani_wheel_slice(n, t, connection):
@@ -58,7 +58,7 @@ def ani_wheel_slice(n, t, connection):
         time.sleep(delta_t)
 
 
-def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS):
+def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
     # moving hump of color
     """n: number of cycles to perform.
     t: total duration of each cycle
@@ -68,12 +68,28 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS):
     """
     print(locals())
     for nn in range(n):
+        # nn is number of iterations of the animation
         c = randcolor()
-        for i in range(num_pixels * resolution):
+        movement_eccentricity = random.random() * 1.5 + 0.5
+        num_steps = num_pixels * resolution
+        # print(movement_eccentricity)
+        for i in range(num_steps):
+            # i is the current step/frame of the animation
             cs = []
+            # hump_fraction is progress of the hump along the strip as a
+            # fraction
+            hump_fraction = i / num_steps
+            # hump_fraction is progress of the hump along the strip as a pixel
+            # index
+            hump_location = ((hump_fraction) **
+                             movement_eccentricity) * num_pixels
             for j in range(num_pixels):
+                # this distance between this pixel and the center of the hump
+                # 1 is added to avoid division by zero
+                this_pixel_distance = abs(hump_location - j) + 1
+                brightness_divisor = (this_pixel_distance)**(power)
                 cs.append(
-                    tuple(map(lambda x: int(x / (1 + abs(i / resolution - j))**(power)), c)))
+                    tuple(map(lambda x: int(x / brightness_divisor), c)))
             # cs = [(0, 0, 0)] * num_pixels
             # cs[i] = c
             connection.write_frame(cs)
@@ -91,10 +107,9 @@ def main():
     #      time.sleep(0.01)
     while True:
         try:
-            for i in [2 * (0.5)**i for i in range(1, 3)]:
-                ani_sinwave(n=int(60/i), t=i, resolution=2,
-                            power=2, connection=connection)
-            ani_wheel(n=10,  connection=connection)
+            ani_sinwave(n=50, t=3, resolution=10,
+                        power=1.5, connection=connection)
+            ani_wheel(n=10, t=5, connection=connection)
             ani_wheel_slice(n=500, t=60, connection=connection)
 
         except KeyboardInterrupt:

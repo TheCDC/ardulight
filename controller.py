@@ -48,7 +48,7 @@ class Controller():
 
     def write_frame(self, colors):
         """Take a list of RGB tuples and write them out to the 'duino via serial."""
-        attempts_remaining = 10
+        attempts_remaining = 30
         while attempts_remaining > 0:
             try:
                 self.serial.write("-2\n".encode(encoding="UTF-8"))
@@ -63,6 +63,7 @@ class Controller():
                 try:
                     self.open()
                 except serial.serialutil.SerialException:
+                    self.close()
                     pass
                 if attempts_remaining == 0:
                     raise RuntimeError(
