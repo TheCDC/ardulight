@@ -61,22 +61,26 @@ class Controller():
                 self.serial.write(
                     (out_str).encode(encoding="UTF-8"))
                 self.serial.flush()
-                chars = []
-                while self.serial.in_waiting > 0:
-                    chars.append(self.serial.read().decode())
-                s = ''.join(chars).strip()
-                if len(s) > 0:
-                    print(s)
-                    pass
+                # chars = []
+                # while self.serial.in_waiting > 0:
+                #     chars.append(self.serial.read().decode())
+                # s = ''.join(chars).strip()
+                # if len(s) > 0:
+                #     print(s)
+                #     pass
 
                 return
             except serial.serialutil.SerialException as e:
                 attempts_remaining -= 1
+                # close the connection ASAP so the device can connect to the
+                # same serial port
                 self.close()
                 time.sleep(1)
                 try:
                     self.open()
                 except serial.serialutil.SerialException:
+                    # continue to close the connection to the port every time
+                    # it fails.
                     self.close()
                     pass
                 if attempts_remaining == 0:
