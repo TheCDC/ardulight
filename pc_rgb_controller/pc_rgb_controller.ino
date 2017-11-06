@@ -9,7 +9,7 @@
 #define PIN            6
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS      30
+#define NUMPIXELS      20
 
 
 void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1);
@@ -33,7 +33,7 @@ void setup() {
   pixels.begin(); // This initializes the NeoPixel library.
   Serial.begin(115200);
   //  set timeout in millis
-  Serial.setTimeout(100) ;
+  Serial.setTimeout(1000) ;
   int d = 200;
   setColor(pixels, pixels.Color(255, 0, 0));
   pixels.show();
@@ -58,51 +58,52 @@ void loop() {
   boolean flag = false;
   //   For a set of NeoPixels the first NeoPixel is 0, second is 1, all the way up to the count of pixels minus one.
   switch (modeState) {
-  case 0:
-    n = Serial.parseInt();
-    //      Serial.print("N:");
-    //      Serial.println(n);
-    //change input mode based on n
+    case 0:
+      n = Serial.parseInt();
+      //      Serial.print("N:");
+      //      Serial.println(n);
+      //change input mode based on n
 
-    //n < 0 is a special command, triggering different input modes
-    modeState = controlCodeToModeState(n);
-    //      Serial.print("NEXTMODE=");
-    //      Serial.println(modeState);
-    if (modeState == 0){
-      blank(pixels);
-    }
-    break;
+      //n < 0 is a special command, triggering different input modes
+      modeState = controlCodeToModeState(n);
+      //      Serial.print("NEXTMODE=");
+      //      Serial.println(modeState);
+      if ( n >= 0) {
+        blank(pixels);
+        pixels.show();
+      }
+      break;
 
-  case 2:
-    //      Serial.println("Exec mode 2");
-    //pixel mode.
-    //At the moment, the strip of LEDs is folded on itself on my monitor stand.
-    //This means that there is  really only one physical row.
-    flag = false;
-    for (int i = 0; i < pixels.numPixels(); i++) {
-      color =  Serial.parseInt();
-      //        Serial.print("Setting pixel ");
-      //        Serial.print(i);
-      //        Serial.print(" to ");
-      //        Serial.print(color);
-      //        Serial.print("\n");
-      if (color < 0) {
-        Serial.println("ERROR");
-        modeState = -color;
-        flag = true;
-        break;
+    case 2:
+      //      Serial.println("Exec mode 2");
+      //pixel mode.
+      //At the moment, the strip of LEDs is folded on itself on my monitor stand.
+      //This means that there is  really only one physical row.
+      flag = false;
+      for (int i = 0; i < pixels.numPixels(); i++) {
+        color =  Serial.parseInt();
+        //        Serial.print("Setting pixel ");
+        //        Serial.print(i);
+        //        Serial.print(" to ");
+        //        Serial.print(color);
+        //        Serial.print("\n");
+        if (color < 0) {
+          Serial.println("ERROR");
+          modeState = -color;
+          flag = true;
+          break;
+        }
+        if (flag) {
+          break;
+        }
+        pixels.setPixelColor(i, color);
       }
-      if (flag) {
-        break;
-      }
-      pixels.setPixelColor(i, color);
-    }
-    pixels.show();
-    modeState = 0;
-    break;
-  default:
-    modeState = 0;
-    break;
+      pixels.show();
+      modeState = 0;
+      break;
+    default:
+      modeState = 0;
+      break;
   }
   //  Serial.print("MODE=");
   //  Serial.println(modeState);
