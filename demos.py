@@ -72,7 +72,7 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
         c = randcolor()
         num = random.random()
         movement_eccentricity = random.choice(
-            [num / 4 + 0.5, num  + 1.5])
+            [num / 4 + 0.25, num * 2 + 1])
         num_steps = num_pixels * resolution
         # print(movement_eccentricity)
         for i in range(num_steps):
