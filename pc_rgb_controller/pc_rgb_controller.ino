@@ -58,48 +58,51 @@ void loop() {
   boolean flag = false;
   //   For a set of NeoPixels the first NeoPixel is 0, second is 1, all the way up to the count of pixels minus one.
   switch (modeState) {
-    case 0:
-      n = Serial.parseInt();
-      //      Serial.print("N:");
-      //      Serial.println(n);
-      //change input mode based on n
+  case 0:
+    n = Serial.parseInt();
+    //      Serial.print("N:");
+    //      Serial.println(n);
+    //change input mode based on n
 
-      //n < 0 is a special command, triggering different input modes
-      modeState = controlCodeToModeState(n);
-      //      Serial.print("NEXTMODE=");
-      //      Serial.println(modeState);
-      break;
+    //n < 0 is a special command, triggering different input modes
+    modeState = controlCodeToModeState(n);
+    //      Serial.print("NEXTMODE=");
+    //      Serial.println(modeState);
+    if (modeState == 0){
+      blank(pixels);
+    }
+    break;
 
-    case 2:
-//      Serial.println("Exec mode 2");
-      //pixel mode.
-      //At the moment, the strip of LEDs is folded on itself on my monitor stand.
-      //This means that there is  really only one physical row.
-      flag = false;
-      for (int i = 0; i < pixels.numPixels(); i++) {
-        color =  Serial.parseInt();
-//        Serial.print("Setting pixel ");
-//        Serial.print(i);
-//        Serial.print(" to ");
-//        Serial.print(color);
-//        Serial.print("\n");
-        if (color < 0) {
-          Serial.println("ERROR");
-          modeState = -color;
-          flag = true;
-          break;
-        }
-        if (flag) {
-          break;
-        }
-        pixels.setPixelColor(i, color);
+  case 2:
+    //      Serial.println("Exec mode 2");
+    //pixel mode.
+    //At the moment, the strip of LEDs is folded on itself on my monitor stand.
+    //This means that there is  really only one physical row.
+    flag = false;
+    for (int i = 0; i < pixels.numPixels(); i++) {
+      color =  Serial.parseInt();
+      //        Serial.print("Setting pixel ");
+      //        Serial.print(i);
+      //        Serial.print(" to ");
+      //        Serial.print(color);
+      //        Serial.print("\n");
+      if (color < 0) {
+        Serial.println("ERROR");
+        modeState = -color;
+        flag = true;
+        break;
       }
-      pixels.show();
-      modeState = 0;
-      break;
-    default:
-      modeState = 0;
-      break;
+      if (flag) {
+        break;
+      }
+      pixels.setPixelColor(i, color);
+    }
+    pixels.show();
+    modeState = 0;
+    break;
+  default:
+    modeState = 0;
+    break;
   }
   //  Serial.print("MODE=");
   //  Serial.println(modeState);
@@ -139,5 +142,6 @@ int controlCodeToModeState(int code) {
     return 0;
   }
 }
+
 
 
