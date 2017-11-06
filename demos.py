@@ -70,7 +70,9 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
     for nn in range(n):
         # nn is number of iterations of the animation
         c = randcolor()
-        movement_eccentricity = random.random() * 1.5 ** random.choice([-1, 1])
+        num = random.random()
+        movement_eccentricity = random.choice(
+            [num / 2 + 0.5, num + 1])
         num_steps = num_pixels * resolution
         # print(movement_eccentricity)
         for i in range(num_steps):
@@ -98,8 +100,14 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
 
 
 def main():
+    try:
+        port = controller.user_pick_list(
+            SerialDetector.serial_ports())
+    except ValueError:
+        raise RuntimeError(
+            "No devices were found! If you are on *nix you may need to run as root.")
     connection = controller.Controller(
-        port=controller.user_pick_list(SerialDetector.serial_ports()),
+        port=port,
         baudrate=115200)
     # for i in range(100):
     #  for c in [r, g, b]:
@@ -107,7 +115,7 @@ def main():
     #      time.sleep(0.01)
     while True:
         try:
-            ani_sinwave(n=50, t=3, resolution=1,
+            ani_sinwave(n=50, t=3, resolution=2,
                         power=1.5, connection=connection)
             ani_wheel_slice(n=500, t=10, connection=connection)
             ani_wheel(n=10, t=5, connection=connection)
