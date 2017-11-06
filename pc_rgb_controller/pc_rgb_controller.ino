@@ -9,7 +9,7 @@
 #define PIN            6
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS      20
+#define NUMPIXELS      30
 
 
 void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1);
@@ -33,8 +33,8 @@ void setup() {
   pixels.begin(); // This initializes the NeoPixel library.
   Serial.begin(115200);
   //  set timeout in millis
-  Serial.setTimeout(1000) ;
-  int d = 500;
+  Serial.setTimeout(100) ;
+  int d = 200;
   setColor(pixels, pixels.Color(255, 0, 0));
   pixels.show();
   delay(d);
@@ -55,67 +55,54 @@ void loop() {
   uint32_t color;
   uint32_t colorLeft;
   uint32_t colorRight;
+  boolean flag = false;
   //   For a set of NeoPixels the first NeoPixel is 0, second is 1, all the way up to the count of pixels minus one.
   switch (modeState) {
     case 0:
       n = Serial.parseInt();
       //      Serial.print("N:");
-//      Serial.println(n);
+      //      Serial.println(n);
       //change input mode based on n
-      if (n >= 0) {
-        //n>=0 treats n as a packed RGB color
-        modeState = 0;
-        color = n;
-        //and simply writes it to all LEDs
-        setColor(pixels, color);
-        pixels.show();
-      }
-      else {
-        //n < 0 is a special command, triggering different input modes
-        if (n == -1) {
-          modeState = 1;
 
-        }
-        else if (n == -2) {
-          modeState = 2;
-
-        }
-      }
+      //n < 0 is a special command, triggering different input modes
+      modeState = controlCodeToModeState(n);
+      //      Serial.print("NEXTMODE=");
+      //      Serial.println(modeState);
       break;
-    case 1:
-      //2color mode, a left color and right color
-      
-      colorLeft = Serial.parseInt();
-      colorRight = Serial.parseInt();
 
-
-      //strip is separated into 2 strips of 10,
-      //LEDs 5-9 and 10-14 are on the left
-      //LEDs 0-4 and 15-19 are on the right
-
-      setColor(pixels, colorLeft, 10, 10 + 5);
-      setColor(pixels, colorLeft, 5, 5 + 5);
-
-      setColor(pixels, colorRight, 0, 0 + 5);
-      setColor(pixels, colorRight, 15, 15 + 5);
+    case 2:
+//      Serial.println("Exec mode 2");
+      //pixel mode.
+      //At the moment, the strip of LEDs is folded on itself on my monitor stand.
+      //This means that there is  really only one physical row.
+      flag = false;
+      for (int i = 0; i < pixels.numPixels(); i++) {
+        color =  Serial.parseInt();
+//        Serial.print("Setting pixel ");
+//        Serial.print(i);
+//        Serial.print(" to ");
+//        Serial.print(color);
+//        Serial.print("\n");
+        if (color < 0) {
+          Serial.println("ERROR");
+          modeState = -color;
+          flag = true;
+          break;
+        }
+        if (flag) {
+          break;
+        }
+        pixels.setPixelColor(i, color);
+      }
       pixels.show();
       modeState = 0;
       break;
-    case 2:
-    //pixel mode. 
-    //At the moment, the strip of 20 LEDs is folded on itself on my monitor stand.
-    //This means that there is  really only one physical row.
-      for (int i = 0; i < pixels.numPixels(); i++) {
-        color =  Serial.parseInt();
-        pixels.setPixelColor(i, color);
-//        pixels.setPixelColor(pixels.numPixels() - i - 1, color);
-      }
-      pixels.show();
+    default:
       modeState = 0;
       break;
   }
-  //  Serial.print("MODE:");
-//  Serial.println(modeState);
+  //  Serial.print("MODE=");
+  //  Serial.println(modeState);
 }
 
 void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1) {
@@ -123,11 +110,6 @@ void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1) 
     b = strip.numPixels();
   }
   for (uint8_t i = a; i < b; i ++) {
-    //    Serial.print("Setting pixel ");
-    //    Serial.print(i);
-    //    Serial.print(" to ");
-    //    Serial.print(color);
-    //    Serial.print("\n");
     pixels.setPixelColor(i, color);
 
   }
@@ -143,6 +125,18 @@ void serialFlush() {
   //get rid of all remaining serial input
   while (Serial.available() > 0) {
     char t = Serial.read();
+  }
+}
+
+int controlCodeToModeState(int code) {
+  if (code == -1) {
+    return 1;
+  }
+  else if (code == -2) {
+    return 2;
+  }
+  else {
+    return 0;
   }
 }
 

@@ -51,18 +51,36 @@ class Controller():
         attempts_remaining = 30
         while attempts_remaining > 0:
             try:
-                self.serial.write("-2\n".encode(encoding="UTF-8"))
+                out_tokens = []
+                out_tokens.append("-2")
                 for c in colors:
-                    self.serial.write(
-                        (str(pack_rgb(c)) + "\n").encode(encoding="UTF-8"))
+                    out_tokens.append(str(pack_rgb(c)))
+                out_tokens.append('\n')
+                out_str = " ".join(out_tokens)
+                # print("write:", out_str)
+                self.serial.write(
+                    (out_str).encode(encoding="UTF-8"))
+                self.serial.flush()
+                # chars = []
+                # while self.serial.in_waiting > 0:
+                #     chars.append(self.serial.read().decode())
+                # s = ''.join(chars).strip()
+                # if len(s) > 0:
+                #     print(s)
+                #     pass
+
                 return
             except serial.serialutil.SerialException as e:
                 attempts_remaining -= 1
+                # close the connection ASAP so the device can connect to the
+                # same serial port
                 self.close()
                 time.sleep(1)
                 try:
                     self.open()
                 except serial.serialutil.SerialException:
+                    # continue to close the connection to the port every time
+                    # it fails.
                     self.close()
                     pass
                 if attempts_remaining == 0:

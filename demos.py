@@ -70,7 +70,7 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
     for nn in range(n):
         # nn is number of iterations of the animation
         c = randcolor()
-        movement_eccentricity = random.random() * 1.5 + 0.5
+        movement_eccentricity = random.random() * 1.5 ** random.choice([-1, 1])
         num_steps = num_pixels * resolution
         # print(movement_eccentricity)
         for i in range(num_steps):
@@ -109,8 +109,8 @@ def main():
         try:
             ani_sinwave(n=50, t=3, resolution=1,
                         power=1.5, connection=connection)
+            ani_wheel_slice(n=500, t=10, connection=connection)
             ani_wheel(n=10, t=5, connection=connection)
-            ani_wheel_slice(n=500, t=60, connection=connection)
 
         except KeyboardInterrupt:
             connection.terminate()
