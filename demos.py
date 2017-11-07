@@ -34,7 +34,8 @@ def ani_wheel(n, t, connection, num_pixels=NUMPIXELS):
     print(locals())
     cs = default_pixels()
     start = n * 4
-    for nn in range(start, 0, -2):
+    stop = 4
+    for nn in range(start, stop, -2):
         print(nn)
         numsteps = 100
 
