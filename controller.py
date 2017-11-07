@@ -55,8 +55,8 @@ class Controller():
                 out_tokens.append("-2")
                 for c in colors:
                     out_tokens.append(str(pack_rgb(c)))
-                out_tokens.append('\n')
-                out_str = " ".join(out_tokens)
+                # out_tokens.append('\n')
+                out_str = " ".join(out_tokens) + '\n'
                 # print("write:", out_str)
                 self.serial.write(
                     (out_str).encode(encoding="UTF-8"))

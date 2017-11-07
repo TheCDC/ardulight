@@ -33,16 +33,19 @@ def ani_wheel(n, t, connection, num_pixels=NUMPIXELS):
     # single color that goes around the wheel
     print(locals())
     cs = default_pixels()
-    for nn in range(n * 4, 0, -2):
+    start = n * 4
+    for nn in range(start, 0, -2):
+        print(nn)
         numsteps = 100
 
         width = nn / n
-        for i in range(numsteps):
-            cs = list(map(lambda x: rgb_float_to_int(colorsys.hsv_to_rgb(
-                (x) / (num_pixels * width) + i / numsteps, 1, 1)), range(num_pixels)))
-            connection.write_frame(cs)
-            # cs.append(cs.pop(0))
-            time.sleep(t / numsteps)
+        for j in range(start // nn):
+            for i in range(numsteps):
+                cs = list(map(lambda x: rgb_float_to_int(colorsys.hsv_to_rgb(
+                    (x) / (num_pixels * width) + i / numsteps, 1, 1)), range(num_pixels)))
+                connection.write_frame(cs)
+                # cs.append(cs.pop(0))
+                time.sleep(t / numsteps)
 
 
 def ani_wheel_slice(n, t, connection):
@@ -115,10 +118,10 @@ def main():
     #      time.sleep(0.01)
     while True:
         try:
-            ani_sinwave(n=50, t=3, resolution=10,
+            ani_wheel(n=10, t=5, connection=connection)
+            ani_sinwave(n=50, t=3, resolution=2,
                         power=1.5, connection=connection)
             ani_wheel_slice(n=500, t=10, connection=connection)
-            ani_wheel(n=10, t=5, connection=connection)
 
         except KeyboardInterrupt:
             connection.terminate()
