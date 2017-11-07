@@ -3,10 +3,10 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import sys
 import multiprocessing
-import controller
+import ardulight.cdc_rgb_controller as controller
 from collections import namedtuple
 import queue
-import SerialDetector
+from ardulight import serial_utils
 import serial
 import time
 import textwrap
@@ -249,7 +249,7 @@ class ScreenToRGBApp(ttk.Frame):
     def refresh_port_list(self):
         for _ in range(self.serial_list.size()):
             self.serial_list.delete(0)
-        serials = SerialDetector.serial_ports()
+        serials = serial_utils.serial_ports()
 
         for index, item in enumerate(serials):
             self.serial_list.insert(index, item)

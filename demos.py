@@ -1,6 +1,6 @@
-import controller
+import ardulight.cdc_rgb_controller as controller
 import random
-import SerialDetector
+from ardulight import serial_utils
 import time
 import colorsys
 from gui import load_or_create
@@ -105,7 +105,7 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
 def main():
     try:
         port = controller.user_pick_list(
-            SerialDetector.serial_ports())
+            serial_utils.serial_ports())
     except ValueError:
         raise RuntimeError(
             "No devices were found! If you are on *nix you may need to run as root.")

@@ -10,7 +10,7 @@ else:
     import pyscreenshot as ImageGrab
 # import pyscreenshot as ImageGrab
 import serial
-import SerialDetector
+from ardulight import serial_utils
 import time
 import math
 
