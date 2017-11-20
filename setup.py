@@ -2,7 +2,7 @@
 
 import os
 from setuptools import setup, find_packages
-from structure import __version__
+from ardulight import __version__
 
 
 # Utility function to read the README file.
