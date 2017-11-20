@@ -11,7 +11,7 @@ from ardulight import __version__
 # string in below ...
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
+print(read('requirements.txt').split('\n'))
 # the setup
 setup(
     name='ardulight',
@@ -23,7 +23,10 @@ setup(
     author_email='christopher.chen1995@gmail.com',
     packages=find_packages(exclude=('docs', 'tests', 'env', 'index.py')),
     include_package_data=True,
-    install_requires=read('requirements.txt').split('\n'),
+    install_requires=['pillow',
+        'pyserial',
+        'pyscreenshot',
+    ]
     extras_require={
     'dev': [],
     'docs': [],
