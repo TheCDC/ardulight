@@ -36,7 +36,7 @@ def ani_wheel(n, t, connection, num_pixels=NUMPIXELS):
     start = n * 4
     stop = 4
     for nn in range(start, stop, -2):
-        print(nn)
+        # print(nn)
         numsteps = 100
 
         width = nn / n
@@ -123,6 +123,10 @@ def main():
             ani_sinwave(n=50, t=3, resolution=2,
                         power=1.5, connection=connection)
             ani_wheel_slice(n=500, t=10, connection=connection)
+            for i in range(10):
+                c = randcolor()
+                connection.fade_to(frame=[c for i in range(
+                    NUMPIXELS)], duration=2, num_steps=50)
 
         except KeyboardInterrupt:
             connection.terminate()

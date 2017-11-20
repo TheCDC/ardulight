@@ -15,6 +15,9 @@ else:
 # import pyscreenshot as ImageGrab
 
 
+TIMEOUT = 1
+
+
 class Alarm():
 
     """A simple class that implements a timer."""
@@ -41,6 +44,7 @@ class Controller():
                  baudrate=115200,):
         self.port = port
         self.baudrate = baudrate
+        self.last_frame = None
         self.open()
 
     def terminate(self):
@@ -48,6 +52,7 @@ class Controller():
 
     def write_frame(self, colors):
         """Take a list of RGB tuples and write them out to the 'duino via serial."""
+        self.last_frame = colors
         attempts_remaining = 30
         while attempts_remaining > 0:
             try:
@@ -82,7 +87,6 @@ class Controller():
                     # continue to close the connection to the port every time
                     # it fails.
                     self.close()
-                    pass
                 if attempts_remaining == 0:
                     raise RuntimeError(
                         "The controller attempted to recover from a disconnect but failed.\n{}".format(e))
@@ -93,6 +97,43 @@ class Controller():
     def open(self):
         self.serial = serial.Serial(
             port=self.port, baudrate=self.baudrate, write_timeout=0.5)
+
+    def fade_to(self, frame, duration, num_steps=10):
+        target_frame = frame[:]
+        dt = duration / num_steps
+        # it is possible that no frame may have yet been written
+        if self.last_frame is None:
+            # initialize the frame to all black
+            last_frame = [(0, 0, 0) for i in range(len(target_frame))]
+        else:
+            last_frame = self.last_frame[:]
+
+        for i in range(1, num_steps + 1):
+            cur_frame = [(0, 0, 0) for i in range(len(target_frame))]
+            # construct each pixel
+            for index, prev_pixel in enumerate(last_frame):
+                target_pixel = target_frame[index]
+                # list comprehension to calculate new channel brightnesses
+                # for each pixel
+                new_pixel = tuple(
+                    int(
+                        prev_pixel[
+                            channel] + (target_pixel[channel] - prev_pixel[channel]) * (i / num_steps)
+                    )
+                    for channel in range(len(prev_pixel)))
+                cur_frame[index] = new_pixel
+            # handle delay between frames being longer than timeout
+            if dt > TIMEOUT:
+                # multiply the actual frequency of frame writes by a factor
+                factor = 2
+                num_sleeps = factor * math.ceil(dt / TIMEOUT)
+                for _ in range(num_sleeps):
+                    self.write_frame(cur_frame)
+                    time.sleep(dt / (TIMEOUT * factor))
+            else:
+                # if the dt is small enough just write the frame
+                self.write_frame(cur_frame)
+                time.sleep(dt)
 
 
 class ScreenToRGB():
