@@ -23,8 +23,7 @@ setup(
     author_email='christopher.chen1995@gmail.com',
     packages=find_packages(exclude=('docs', 'tests', 'env', 'index.py')),
     include_package_data=True,
-    install_requires=[
-    ],
+    install_requires=read('requirements.txt').split('\n'),
     extras_require={
     'dev': [],
     'docs': [],
