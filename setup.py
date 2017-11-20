@@ -14,7 +14,7 @@ def read(fname):
 
 # the setup
 setup(
-    name='structure',
+    name='ardulight',
     version=__version__,
     description='Controller for Arduino LED hardware',
     # long_description=read('README'),
