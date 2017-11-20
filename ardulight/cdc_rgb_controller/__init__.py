@@ -3,16 +3,16 @@
 import PIL
 from PIL import Image
 import sys
+import serial
+from ardulight import serial_utils
+import time
+import math
 PLATFORM = sys.platform
 if PLATFORM == "win32":
     from PIL import ImageGrab
 else:
     import pyscreenshot as ImageGrab
 # import pyscreenshot as ImageGrab
-import serial
-from ardulight import serial_utils
-import time
-import math
 
 
 class Alarm():
