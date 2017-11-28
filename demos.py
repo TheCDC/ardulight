@@ -4,6 +4,7 @@ from ardulight import serial_utils
 import time
 import colorsys
 from gui import load_or_create
+import enum
 
 
 def randcolor():
@@ -103,6 +104,22 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
             time.sleep(dt)
 
 
+def generic_demos(connection):
+    ani_wheel(n=10, t=5, connection=connection)
+    ani_sinwave(n=50, t=3, resolution=2,
+                power=1.5, connection=connection)
+    ani_wheel_slice(n=500, t=10, connection=connection)
+    for i in range(10):
+        c = randcolor()
+        connection.fade_to(frame=[c for i in range(
+            NUMPIXELS)], duration=2, num_steps=50)
+
+
+class Modes(enum.Enum):
+    generic = 0
+    christmas = 1
+
+
 def main():
     try:
         port = controller.user_pick_list(
@@ -117,20 +134,28 @@ def main():
     #  for c in [r, g, b]:
     #      connection.write_frame([c]*NUMPIXELS)
     #      time.sleep(0.01)
-    while True:
-        try:
-            ani_wheel(n=10, t=5, connection=connection)
-            ani_sinwave(n=50, t=3, resolution=2,
-                        power=1.5, connection=connection)
-            ani_wheel_slice(n=500, t=10, connection=connection)
-            for i in range(10):
-                c = randcolor()
-                connection.fade_to(frame=[c for i in range(
-                    NUMPIXELS)], duration=2, num_steps=50)
+    chosen_mode = controller.user_pick_list(list(Modes))
+    if chosen_mode == Modes.generic:
 
-        except KeyboardInterrupt:
-            connection.terminate()
-            quit()
+        while True:
+            try:
+                generic_demos(connection)
+            except KeyboardInterrupt:
+                connection.terminate()
+                quit()
+    elif chosen_mode == Modes.christmas:
+        christmas_colors = [(255, 0, 0), (0, 255, 0), (255, 255, 255)]
+        fps = 20
+        delay = 3
+        while True:
+            ns = int(fps * delay)
+            connection.fade_to(frame=[randcolor()
+                                      for i in range(NUMPIXELS)],
+                               duration=delay,
+                               num_steps=ns)
+            connection.fade_to(frame=[randcolor()] * NUMPIXELS,
+                               duration=delay / 2,
+                               num_steps=ns)
 
 
 if __name__ == '__main__':

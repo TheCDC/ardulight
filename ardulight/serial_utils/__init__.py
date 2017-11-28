@@ -16,7 +16,8 @@ def serial_ports():
     elif sys.platform == 'linux' or sys.platform.startswith('cygwin'):
         # this excludes your current terminal "/dev/tty"
         ports = glob.glob('/dev/ttyACM[0-9]*') + \
-            glob.glob('/dev/rfcom[A-Za-z]*')
+            glob.glob('/dev/rfcom[A-Za-z]*') + \
+            glob.glob('/dev/ttyUSB[0-9]*')
     elif sys.platform.startswith('darwin'):
         ports = glob.glob('/dev/tty.*')
     else:
