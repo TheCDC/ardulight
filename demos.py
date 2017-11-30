@@ -145,17 +145,25 @@ def main():
                 quit()
     elif chosen_mode == Modes.christmas:
         christmas_colors = [(255, 0, 0), (0, 255, 0), (255, 255, 255)]
-        fps = 20
-        delay = 3
+        fps = 30
+        delay = 1
         while True:
+            frame = [randcolor() for i in range(NUMPIXELS)]
+            onecolor = [randcolor()] * NUMPIXELS
             ns = int(fps * delay)
-            connection.fade_to(frame=[randcolor()
-                                      for i in range(NUMPIXELS)],
+            connection.fade_to(frame=frame,
+                               duration=delay,
+                               num_steps=ns, )
+            connection.fade_to(frame=onecolor,
                                duration=delay,
                                num_steps=ns)
-            connection.fade_to(frame=[randcolor()] * NUMPIXELS,
-                               duration=delay / 2,
-                               num_steps=ns)
+            step = controller.TIMEOUT / 10
+            num_steps = delay * 4 / step
+            for i in range(int(num_steps)):
+                connection.write_frame(onecolor)
+                time.sleep(step)
+
+            # time.sleep(delay / 4)
 
 
 if __name__ == '__main__':
