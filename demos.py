@@ -6,6 +6,13 @@ import colorsys
 from gui import load_or_create
 import enum
 
+COLORS = {
+    'red': (255, 0, 0),
+    'green': (0, 255, 0),
+    'blue': (255, 0, 0),
+    'white': (255, 255, 255),
+}
+
 
 def randcolor():
     return rgb_float_to_int(colorsys.hsv_to_rgb(random.random(), random.random() / 2 + 0.5, 1))
@@ -16,7 +23,7 @@ def rgb_float_to_int(rgb):
 
 
 def scale_brightness(rgb, factor):
-    return tuple(channel * factor for channel in rgb)
+    return tuple(int(channel * factor) for channel in rgb)
 
 
 try:
@@ -104,6 +111,22 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
             time.sleep(dt)
 
 
+def christmas_hump(n, t, connection, resolution=2, exponent=1):
+    num_steps = NUMPIXELS * resolution
+    for iteration in range(n):
+        colors = [COLORS[random.choice(['red', 'green'])]
+                  for _ in range(NUMPIXELS)]
+        for step in range(num_steps):
+            hump_position = NUMPIXELS * step / num_steps
+            brightness_mask = [(abs(hump_position - index) + 1)**(-exponent)
+                               for index in range(NUMPIXELS)]
+            out_frame = [scale_brightness(pixel, factor)
+                         for pixel, factor in zip(colors, brightness_mask)]
+            connection.write_frame(out_frame)
+            # print(brightness_mask)
+            sleep_alive(connection, t / num_steps)
+
+
 def generic_demos(connection):
     ani_wheel(n=10, t=5, connection=connection)
     ani_sinwave(n=50, t=3, resolution=2,
@@ -121,12 +144,22 @@ class Modes(enum.Enum):
 
 
 def sleep_alive(connection, duration):
+    """Sleep while preserving the last frame.
+    The hardware defaults to a blank fram on timeout
+    This prevents that.
+
+    The name is a play on sleep/keep alive."""
     frame = connection.last_frame
-    step = controller.TIMEOUT / 10
-    num_steps = duration * 4 / step
-    for i in range(int(num_steps)):
-        connection.write_frame(frame)
-        time.sleep(step)
+    step_duration = controller.TIMEOUT / 4
+    num_steps = duration / step_duration
+    # handle case that the requested sleep time is
+    # actually fine
+    if duration < controller.TIMEOUT:
+        time.sleep(duration)
+    else:
+        for _ in range(int(num_steps)):
+            connection.write_frame(frame)
+            time.sleep(step_duration)
 
 
 def main():
@@ -157,6 +190,9 @@ def main():
         fps = 30
         delay = 1
         while True:
+            christmas_hump(n=5, t=5, connection=connection,
+                           resolution=30, exponent=2)
+            continue
             frame = [randcolor() for i in range(NUMPIXELS)]
             onecolor = [randcolor()] * NUMPIXELS
             ns = int(fps * delay)
