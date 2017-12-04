@@ -8,7 +8,7 @@ import enum
 
 
 def randcolor():
-    return rgb_float_to_int(colorsys.hsv_to_rgb(random.random(), 1, 1))
+    return rgb_float_to_int(colorsys.hsv_to_rgb(random.random(), random.random() / 2 + 0.5, 1))
 
 
 def rgb_float_to_int(rgb):
@@ -120,6 +120,15 @@ class Modes(enum.Enum):
     christmas = 1
 
 
+def sleep_alive(connection, duration):
+    frame = connection.last_frame
+    step = controller.TIMEOUT / 10
+    num_steps = duration * 4 / step
+    for i in range(int(num_steps)):
+        connection.write_frame(frame)
+        time.sleep(step)
+
+
 def main():
     try:
         port = controller.user_pick_list(
@@ -152,17 +161,13 @@ def main():
             onecolor = [randcolor()] * NUMPIXELS
             ns = int(fps * delay)
             connection.fade_to(frame=frame,
-                               duration=delay,
+                               duration=delay / 2,
                                num_steps=ns, )
+            sleep_alive(connection, delay / 2)
             connection.fade_to(frame=onecolor,
-                               duration=delay,
+                               duration=delay / 2,
                                num_steps=ns)
-            step = controller.TIMEOUT / 10
-            num_steps = delay * 4 / step
-            for i in range(int(num_steps)):
-                connection.write_frame(onecolor)
-                time.sleep(step)
-
+            sleep_alive(connection, delay * 2)
             # time.sleep(delay / 4)
 
 
