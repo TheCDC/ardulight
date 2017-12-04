@@ -72,11 +72,18 @@ def ani_wheel_slice(n, t, connection):
 
 def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
     # moving hump of color
-    """n: number of cycles to perform.
-    t: total duration of each cycle
-    resolution: sub pixel resolution. Decrease if animation is slower than intended.
-    connection: serial connection object
-    power: exponent for decay rate of brightness of pixels as distance from hump increases
+    """n:
+        number of cycles to perform.
+    t:
+        total duration of each cycle
+    resolution:
+         sub pixel resolution.
+         Decrease if animation has bad performance.
+         Increase if animation is choppy.
+    connection:
+        serial connection object
+    power:
+        Exponent describing shape of hump.
     """
     print(locals())
     for nn in range(n):
@@ -113,7 +120,7 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
 
 def christmas_hump(n, t, connection, resolution=2, exponent=1):
     num_steps = NUMPIXELS * resolution
-    for iteration in range(n):
+    for _ in range(n):
         colors = [COLORS[random.choice(['red', 'green'])]
                   for _ in range(NUMPIXELS)]
         for step in range(num_steps):
@@ -186,9 +193,8 @@ def main():
                 connection.terminate()
                 quit()
     elif chosen_mode == Modes.christmas:
-        christmas_colors = [(255, 0, 0), (0, 255, 0), (255, 255, 255)]
         fps = 30
-        delay = 1
+        delay = 2
         while True:
             # christmas_hump(n=5, t=5, connection=connection,
             #                resolution=30, exponent=1)
@@ -197,13 +203,13 @@ def main():
             onecolor = [randcolor()] * NUMPIXELS
             ns = int(fps * delay)
             connection.fade_to(frame=frame,
-                               duration=delay / 2,
+                               duration=delay,
                                num_steps=ns, )
-            sleep_alive(connection, delay / 2)
+            sleep_alive(connection, delay)
             connection.fade_to(frame=onecolor,
                                duration=delay / 2,
                                num_steps=ns)
-            sleep_alive(connection, delay * 2)
+            sleep_alive(connection, delay * 4)
             # time.sleep(delay / 4)
 
 
