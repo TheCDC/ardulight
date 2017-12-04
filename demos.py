@@ -175,14 +175,14 @@ def main():
             serial_utils.serial_ports())
     except ValueError:
         raise RuntimeError(
-            "No devices were found! If you are on *nix you may need to run as root.")
+            """No devices were found!
+If you are on *nix you may need to run as root.
+On at least Debbian/Ubuntu based systems you can
+add your user to the group 'dialout' to access
+serial port without root with 'sudo adduser username dialout'""")
     connection = controller.Controller(
         port=port,
         baudrate=115200)
-    # for i in range(100):
-    #  for c in [r, g, b]:
-    #      connection.write_frame([c]*NUMPIXELS)
-    #      time.sleep(0.01)
     chosen_mode = controller.user_pick_list(list(Modes))
     if chosen_mode == Modes.generic:
 
@@ -210,7 +210,6 @@ def main():
                                duration=delay / 2,
                                num_steps=ns)
             sleep_alive(connection, delay * 4)
-            # time.sleep(delay / 4)
 
 
 if __name__ == '__main__':
