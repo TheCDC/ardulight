@@ -118,13 +118,15 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
             time.sleep(dt)
 
 
-def christmas_hump(n, t, connection, resolution=2, exponent=1):
+def christmas_hump(n, t, connection, resolution=2, exponent=1, reverse=False):
     num_steps = NUMPIXELS * resolution
     for _ in range(n):
         colors = [COLORS[random.choice(['red', 'green'])]
                   for _ in range(NUMPIXELS)]
         for step in range(num_steps):
             hump_position = NUMPIXELS * step / num_steps
+            if reverse:
+                hump_position = NUMPIXELS - hump_position - 1
             brightness_mask = [(abs(hump_position - index) + 1)**(-exponent)
                                for index in range(NUMPIXELS)]
             out_frame = [scale_brightness(pixel, factor)
@@ -196,20 +198,24 @@ serial port without root with 'sudo adduser username dialout'""")
         fps = 30
         delay = 2
         while True:
-            # christmas_hump(n=5, t=5, connection=connection,
-            #                resolution=30, exponent=1)
+            for _ in range(10):
+                christmas_hump(n=1, t=5, connection=connection,
+                               resolution=30, exponent=2)
+                christmas_hump(n=1, t=5, connection=connection,
+                               resolution=30, exponent=2, reverse=True)
             # continue
-            frame = [randcolor() for i in range(NUMPIXELS)]
-            onecolor = [randcolor()] * NUMPIXELS
-            ns = int(fps * delay)
-            connection.fade_to(frame=frame,
-                               duration=delay,
-                               num_steps=ns, )
-            sleep_alive(connection, delay)
-            connection.fade_to(frame=onecolor,
-                               duration=delay / 2,
-                               num_steps=ns)
-            sleep_alive(connection, delay * 4)
+            for _ in range(10):
+                frame = [randcolor() for i in range(NUMPIXELS)]
+                onecolor = [randcolor()] * NUMPIXELS
+                ns = int(fps * delay)
+                connection.fade_to(frame=frame,
+                                   duration=delay,
+                                   num_steps=ns, )
+                sleep_alive(connection, delay)
+                connection.fade_to(frame=onecolor,
+                                   duration=delay / 2,
+                                   num_steps=ns)
+                sleep_alive(connection, delay * 4)
 
 
 if __name__ == '__main__':
