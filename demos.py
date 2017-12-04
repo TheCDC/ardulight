@@ -11,12 +11,12 @@ def randcolor():
     return rgb_float_to_int(colorsys.hsv_to_rgb(random.random(), 1, 1))
 
 
-def remap(colors):
-    return colors[::-1] + colors
-
-
 def rgb_float_to_int(rgb):
-    return tuple(map(lambda c: int(c * 255), rgb))
+    return tuple(map(lambda channel: int(channel * 255), rgb))
+
+
+def scale_brightness(rgb, factor):
+    return tuple(channel * factor for channel in rgb)
 
 
 try:
