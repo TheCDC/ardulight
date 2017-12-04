@@ -15,7 +15,7 @@ COLORS = {
 
 
 def randcolor():
-    return rgb_float_to_int(colorsys.hsv_to_rgb(random.random(), random.random() / 2 + 0.5, 1))
+    return rgb_float_to_int(colorsys.hsv_to_rgb(random.random(), 1, 1))
 
 
 def rgb_float_to_int(rgb):
@@ -132,7 +132,7 @@ def generic_demos(connection):
     ani_sinwave(n=50, t=3, resolution=2,
                 power=1.5, connection=connection)
     ani_wheel_slice(n=500, t=10, connection=connection)
-    for i in range(10):
+    for _ in range(10):
         c = randcolor()
         connection.fade_to(frame=[c for i in range(
             NUMPIXELS)], duration=2, num_steps=50)
@@ -190,9 +190,9 @@ def main():
         fps = 30
         delay = 1
         while True:
-            christmas_hump(n=5, t=5, connection=connection,
-                           resolution=30, exponent=2)
-            continue
+            # christmas_hump(n=5, t=5, connection=connection,
+            #                resolution=30, exponent=1)
+            # continue
             frame = [randcolor() for i in range(NUMPIXELS)]
             onecolor = [randcolor()] * NUMPIXELS
             ns = int(fps * delay)
