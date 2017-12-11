@@ -14,6 +14,8 @@ else:
     import pyscreenshot as ImageGrab
 # import pyscreenshot as ImageGrab
 
+TARGET_FPS = 30
+
 
 TIMEOUT = 1
 
@@ -98,7 +100,9 @@ class Controller():
         self.serial = serial.Serial(
             port=self.port, baudrate=self.baudrate, write_timeout=0.5)
 
-    def fade_to(self, frame, duration, num_steps=10):
+    def fade_to(self, frame, duration, num_steps=None):
+        if not num_steps:
+            num_steps = math.ceil(duration * TARGET_FPS)
         target_frame = frame[:]
         dt = duration / num_steps
         # it is possible that no frame may have yet been written

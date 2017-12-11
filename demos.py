@@ -11,6 +11,7 @@ COLORS = {
     'green': (0, 255, 0),
     'blue': (255, 0, 0),
     'white': (255, 255, 255),
+    'black': (0, 0, 0),
 }
 
 
@@ -86,17 +87,28 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
         Exponent describing shape of hump.
     """
     print(locals())
-    for nn in range(n):
+
+    def generate_frame(pos):
+        cs = []
+        for j in range(num_pixels):
+            # this distance between this pixel and the center of the hump
+            # 1 is added to avoid division by zero
+            this_pixel_distance = abs(pos - j) + 1
+            brightness_divisor = (this_pixel_distance)**(power)
+            cs.append(
+                tuple(map(lambda x: int(x / brightness_divisor), c)))
+        return cs
+    for _ in range(n):
         # nn is number of iterations of the animation
         c = randcolor()
         num = random.random()
         movement_eccentricity = random.choice(
-            [num / 4 + 0.25, num * 2 + 1])
+            [num / 3 + 0.25, num * 2 + 1])
         num_steps = num_pixels * resolution
         # print(movement_eccentricity)
+        connection.fade_to(generate_frame(0), t / 8)
         for i in range(num_steps):
             # i is the current step/frame of the animation
-            cs = []
             # hump_fraction is progress of the hump along the strip as a
             # fraction
             hump_fraction = i / num_steps
@@ -104,22 +116,17 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
             # index
             hump_location = ((hump_fraction) **
                              movement_eccentricity) * num_pixels
-            for j in range(num_pixels):
-                # this distance between this pixel and the center of the hump
-                # 1 is added to avoid division by zero
-                this_pixel_distance = abs(hump_location - j) + 1
-                brightness_divisor = (this_pixel_distance)**(power)
-                cs.append(
-                    tuple(map(lambda x: int(x / brightness_divisor), c)))
-            # cs = [(0, 0, 0)] * num_pixels
-            # cs[i] = c
+
+            cs = generate_frame(hump_location)
             connection.write_frame(cs)
-            dt = t / (num_pixels * resolution)
-            time.sleep(dt)
+            dt = (t * 3 / 4) / (num_pixels * resolution)
+            sleep_alive(connection, dt)
+        connection.fade_to([COLORS['black']] * NUMPIXELS, t / 8)
 
 
 def christmas_hump(n, t, connection, resolution=2, exponent=1, reverse=False):
     num_steps = NUMPIXELS * resolution
+
     for _ in range(n):
         colors = [COLORS[random.choice(['red', 'green'])]
                   for _ in range(NUMPIXELS)]
@@ -137,9 +144,9 @@ def christmas_hump(n, t, connection, resolution=2, exponent=1, reverse=False):
 
 
 def generic_demos(connection):
-    ani_wheel(n=10, t=5, connection=connection)
-    ani_sinwave(n=50, t=3, resolution=2,
+    ani_sinwave(n=50, t=6, resolution=3,
                 power=1.5, connection=connection)
+    ani_wheel(n=10, t=5, connection=connection)
     ani_wheel_slice(n=500, t=10, connection=connection)
     for _ in range(10):
         c = randcolor()
