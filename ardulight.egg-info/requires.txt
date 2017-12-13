@@ -1,0 +1,9 @@
+pillow
+pyserial
+pyscreenshot
+
+[dev]
+
+[docs]
+
+[testing]
