@@ -3,11 +3,8 @@ import ardulight.color_utils as color_utils
 import random
 import math
 from gui import load_or_create
-try:
-    NUMPIXELS = len(load_or_create("config/mapping.txt", None).split(" "))
-    print("NUMPIXELS=", NUMPIXELS)
-except TypeError:
-    raise RuntimeError("Run the GUI to generate config files!")
+
+NUMPIXELS = 20
 
 
 def lightning(connection, color=color_utils.Colors.white, max_duration=3):
@@ -62,7 +59,10 @@ def present_mtg_colors(connection, colors='wubrg'):
 
 
 def main():
+    global NUMPIXELS
     connection = controller.interactive_choose_serial_device()
+    NUMPIXELS = int(input("How many pixels?"))
+
     # present_mtg_colors(connection, 'bg')
     while True:
         lightning(connection, color=color_utils.randcolor())
