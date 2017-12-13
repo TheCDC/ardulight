@@ -139,6 +139,24 @@ class Controller():
                 self.write_frame(cur_frame)
                 time.sleep(dt)
 
+    def sleep_alive(self, duration):
+        """Sleep while preserving the last frame.
+        The hardware defaults to a blank fram on timeout
+        This prevents that.
+
+        The name is a play on sleep/keep alive."""
+        frame = self.last_frame
+        step_duration = TIMEOUT / 4
+        num_steps = duration / step_duration
+        # handle case that the requested sleep time is
+        # actually fine
+        if duration < TIMEOUT:
+            time.sleep(duration)
+        else:
+            for _ in range(int(num_steps)):
+                self.write_frame(frame)
+                time.sleep(step_duration)
+
 
 class ScreenToRGB():
     """Handles capturing the screen and processing slices to send to 
@@ -309,6 +327,23 @@ def choose_serial(testing=False, port=""):
             "No serial devices found. May require admin privileges.")
 
     return serial.Serial(port=chosen_port, baudrate=115200)
+
+
+def interactive_choose_serial_device():
+    try:
+        port = user_pick_list(
+            serial_utils.serial_ports())
+    except ValueError:
+        raise RuntimeError(
+            """No devices were found!
+If you are on *nix you may need to run as root.
+On at least Debbian/Ubuntu based systems you can
+add your user to the group 'dialout' to access
+serial port without root with 'sudo adduser username dialout'""")
+    connection = Controller(
+        port=port,
+        baudrate=115200)
+    return connection
 
 
 def shoot():

@@ -1,6 +1,5 @@
 import ardulight.cdc_rgb_controller as controller
 import random
-from ardulight import serial_utils
 import time
 import colorsys
 from gui import load_or_create
@@ -120,7 +119,7 @@ def ani_sinwave(n, t, resolution, connection, power=2, num_pixels=NUMPIXELS,):
             cs = generate_frame(hump_location)
             connection.write_frame(cs)
             dt = (t * 3 / 4) / (num_pixels * resolution)
-            sleep_alive(connection, dt)
+            connection.sleep_alive(dt)
         connection.fade_to([COLORS['black']] * NUMPIXELS, t / 8)
 
 
@@ -140,7 +139,7 @@ def christmas_hump(n, t, connection, resolution=2, exponent=1, reverse=False):
                          for pixel, factor in zip(colors, brightness_mask)]
             connection.write_frame(out_frame)
             # print(brightness_mask)
-            sleep_alive(connection, t / num_steps)
+            connection.sleep_alive(t / num_steps)
 
 
 def generic_demos(connection):
@@ -159,39 +158,8 @@ class Modes(enum.Enum):
     christmas = 1
 
 
-def sleep_alive(connection, duration):
-    """Sleep while preserving the last frame.
-    The hardware defaults to a blank fram on timeout
-    This prevents that.
-
-    The name is a play on sleep/keep alive."""
-    frame = connection.last_frame
-    step_duration = controller.TIMEOUT / 4
-    num_steps = duration / step_duration
-    # handle case that the requested sleep time is
-    # actually fine
-    if duration < controller.TIMEOUT:
-        time.sleep(duration)
-    else:
-        for _ in range(int(num_steps)):
-            connection.write_frame(frame)
-            time.sleep(step_duration)
-
-
 def main():
-    try:
-        port = controller.user_pick_list(
-            serial_utils.serial_ports())
-    except ValueError:
-        raise RuntimeError(
-            """No devices were found!
-If you are on *nix you may need to run as root.
-On at least Debbian/Ubuntu based systems you can
-add your user to the group 'dialout' to access
-serial port without root with 'sudo adduser username dialout'""")
-    connection = controller.Controller(
-        port=port,
-        baudrate=115200)
+    connection = controller.interactive_choose_serial_device()
     chosen_mode = controller.user_pick_list(list(Modes))
     if chosen_mode == Modes.generic:
 
@@ -218,11 +186,11 @@ serial port without root with 'sudo adduser username dialout'""")
                 connection.fade_to(frame=frame,
                                    duration=delay,
                                    num_steps=ns, )
-                sleep_alive(connection, delay)
+                connection.sleep_alive(delay)
                 connection.fade_to(frame=onecolor,
                                    duration=delay / 2,
                                    num_steps=ns)
-                sleep_alive(connection, delay * 4)
+                connection.sleep_alive(delay * 4)
 
 
 if __name__ == '__main__':
