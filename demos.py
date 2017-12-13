@@ -143,14 +143,14 @@ def christmas_hump(n, t, connection, resolution=2, exponent=1, reverse=False):
 
 
 def generic_demos(connection):
-    ani_sinwave(n=50, t=6, resolution=3,
+    ani_sinwave(n=50, t=1, resolution=3,
                 power=1.5, connection=connection)
-    ani_wheel(n=10, t=5, connection=connection)
-    ani_wheel_slice(n=500, t=10, connection=connection)
+    ani_wheel(n=10, t=1, connection=connection)
+    ani_wheel_slice(n=500, t=2, connection=connection)
     for _ in range(10):
         c = randcolor()
         connection.fade_to(frame=[c for i in range(
-            NUMPIXELS)], duration=2, num_steps=50)
+            NUMPIXELS)], duration=1, num_steps=50)
 
 
 class Modes(enum.Enum):
