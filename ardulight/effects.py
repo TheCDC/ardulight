@@ -2,7 +2,6 @@ import ardulight.cdc_rgb_controller as controller
 import ardulight.color_utils as color_utils
 import random
 import math
-from gui import load_or_create
 
 NUMPIXELS = 20
 
