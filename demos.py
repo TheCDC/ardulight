@@ -1,9 +1,9 @@
-import ardulight.cdc_rgb_controller as controller
+"""A script to show off animations that can be performed by ardulight."""
+import colorsys
+import enum
 import random
 import time
-import colorsys
-from gui import load_or_create
-import enum
+import ardulight.cdc_rgb_controller as controller
 
 COLORS = {
     'red': (255, 0, 0),
@@ -15,25 +15,28 @@ COLORS = {
 
 
 def randcolor():
+    """Return a random RGB color.
+    Uses HSV to ensure the color is 'bright'."""
     return rgb_float_to_int(colorsys.hsv_to_rgb(random.random(), 1, 1))
 
 
 def rgb_float_to_int(rgb):
+    """Convert an RGB tuple of the form
+    ([0,1],[0,1],[0,1]) to ([0,255],[0,255],[0,255])"""
     return tuple(map(lambda channel: int(channel * 255), rgb))
 
 
 def scale_brightness(rgb, factor):
+    """Multiply each value in an RGB tuple by a factor."""
     return tuple(int(channel * factor) for channel in rgb)
 
 
-try:
-    NUMPIXELS = len(load_or_create("config/mapping.txt", None).split(" "))
-    print("NUMPIXELS=", NUMPIXELS)
-except TypeError:
-    raise RuntimeError("Run the GUI to generate config files!")
+NUMPIXELS = int(input("Num. of pixels\n>>>"))
 
 
 def default_pixels(num_pixels=NUMPIXELS):
+    """Return a blank animation frame suitable for the LED
+    strip currently in use."""
     return [(0, 0, 0,) for i in range(num_pixels)]
 
 
@@ -58,6 +61,7 @@ def ani_wheel(n, t, connection, num_pixels=NUMPIXELS):
 
 
 def ani_wheel_slice(n, t, connection):
+    """Animation showing a slice of the color wheel."""
     # slice of the color wheel
     print(locals())
     cs = default_pixels()

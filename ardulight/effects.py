@@ -1,7 +1,7 @@
-import ardulight.cdc_rgb_controller as controller
-import ardulight.color_utils as color_utils
 import random
 import math
+import ardulight.cdc_rgb_controller as controller
+import ardulight.color_utils as color_utils
 
 NUMPIXELS = 20
 

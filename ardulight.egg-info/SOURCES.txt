@@ -2,6 +2,7 @@ README.md
 setup.py
 ardulight/__init__.py
 ardulight/color_utils.py
+ardulight/effects.py
 ardulight.egg-info/PKG-INFO
 ardulight.egg-info/SOURCES.txt
 ardulight.egg-info/dependency_links.txt
