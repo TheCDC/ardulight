@@ -66,7 +66,7 @@ def main():
                         frame.append(scale_brightness(
                             color, factor))
                     connection.fade_to(
-                        frame=frame, duration=1 / 20, num_steps=10)
+                        frame=frame[::-1], duration=1 / 5, num_steps=10)
                 else:
                     frame = [randcolor(value=1 / 8) for i in range(NUMPIXELS)]
                     connection.fade_to(
