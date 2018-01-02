@@ -2,7 +2,6 @@
 
 import os
 from setuptools import setup, find_packages
-from ardulight import __version__
 
 
 # Utility function to read the README file.
@@ -15,7 +14,7 @@ print(read('requirements.txt').split('\n'))
 # the setup
 setup(
     name='ardulight',
-    version=__version__,
+    version=0.1,
     description='Controller for Arduino LED hardware',
     # long_description=read('README'),
     url='https://github.com/TheCDC/ardulight',
