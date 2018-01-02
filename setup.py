@@ -26,6 +26,7 @@ setup(
     install_requires=['pillow',
         'pyserial',
         'pyscreenshot',
+	'pillow',
     ],
     extras_require={
     'dev': [],
