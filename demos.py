@@ -157,44 +157,59 @@ def generic_demos(connection):
             NUMPIXELS)], duration=2, num_steps=50)
 
 
+def quick_demos(connection):
+    ani_wheel_slice(n=200, t=3, connection=connection)
+    ani_sinwave(n=1, t=6, resolution=3,
+                power=1.5, connection=connection)
+    ani_wheel(n=2, t=3, connection=connection)
+    for _ in range(3):
+        c = randcolor()
+        connection.fade_to(frame=[c for i in range(
+            NUMPIXELS)], duration=2, num_steps=50)
+
+
 class Modes(enum.Enum):
     generic = 0
     christmas = 1
+    quick = 2
 
 
 def main():
     connection = controller.interactive_choose_serial_device()
     chosen_mode = controller.user_pick_list(list(Modes))
-    if chosen_mode == Modes.generic:
+    try:
+        if chosen_mode == Modes.generic:
 
-        while True:
-            try:
+            while True:
                 generic_demos(connection)
-            except KeyboardInterrupt:
-                connection.terminate()
-                quit()
-    elif chosen_mode == Modes.christmas:
-        fps = 30
-        delay = 2
-        while True:
-            for _ in range(10):
-                christmas_hump(n=1, t=5, connection=connection,
-                               resolution=30, exponent=2)
-                christmas_hump(n=1, t=5, connection=connection,
-                               resolution=30, exponent=2, reverse=True)
-            # continue
-            for _ in range(10):
-                frame = [randcolor() for i in range(NUMPIXELS)]
-                onecolor = [randcolor()] * NUMPIXELS
-                ns = int(fps * delay)
-                connection.fade_to(frame=frame,
-                                   duration=delay,
-                                   num_steps=ns, )
-                connection.sleep_alive(delay)
-                connection.fade_to(frame=onecolor,
-                                   duration=delay / 2,
-                                   num_steps=ns)
-                connection.sleep_alive(delay * 4)
+        elif chosen_mode == Modes.quick:
+            while True:
+                quick_demos(connection)
+        elif chosen_mode == Modes.christmas:
+            fps = 30
+            delay = 2
+            while True:
+                for _ in range(10):
+                    christmas_hump(n=1, t=5, connection=connection,
+                                   resolution=30, exponent=2)
+                    christmas_hump(n=1, t=5, connection=connection,
+                                   resolution=30, exponent=2, reverse=True)
+                # continue
+                for _ in range(10):
+                    frame = [randcolor() for i in range(NUMPIXELS)]
+                    onecolor = [randcolor()] * NUMPIXELS
+                    ns = int(fps * delay)
+                    connection.fade_to(frame=frame,
+                                       duration=delay,
+                                       num_steps=ns, )
+                    connection.sleep_alive(delay)
+                    connection.fade_to(frame=onecolor,
+                                       duration=delay / 2,
+                                       num_steps=ns)
+                    connection.sleep_alive(delay * 4)
+    except KeyboardInterrupt:
+        connection.terminate()
+        quit()
 
 
 if __name__ == '__main__':
