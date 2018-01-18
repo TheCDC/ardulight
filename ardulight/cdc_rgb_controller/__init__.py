@@ -12,8 +12,9 @@ if PLATFORM == "win32":
     from PIL import ImageGrab
 else:
     import pyscreenshot as ImageGrab
-# import pyscreenshot as ImageGrab
-
+# new (2018-01-18) fast screenshot lib
+from mss import mss
+SCREENSHOOTER = mss()
 TARGET_FPS = 30
 
 
@@ -347,7 +348,10 @@ serial port without root with 'sudo adduser username dialout'""")
 
 
 def shoot():
-    """Return PIL Image of the screen."""
+    im = None
+    raw_grab = SCREENSHOOTER.grab(SCREENSHOOTER.monitors[0])
+    im = Image.frombytes('RGB', raw_grab.size, raw_grab.rgb)
+    return im
     if PLATFORM == "linux":
         return ImageGrab.grab(backend=None)
     else:
