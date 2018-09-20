@@ -9,7 +9,7 @@
 #define PIN            6
 
 // How many NeoPixels are attached to the Arduino?
-#define NUMPIXELS      20
+#define NUMPIXELS      30
 
 
 void setColor( Adafruit_NeoPixel &strip, uint32_t color, int a = 0, int b = -1);

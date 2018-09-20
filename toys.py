@@ -32,6 +32,8 @@ def randcolor(value=1):
 
 class Modes(enum.Enum):
     mouse = 0
+    mouse_flat_color = 1
+    solid_white = 2
 
 
 def main():
@@ -63,15 +65,39 @@ def main():
                     for i in range(NUMPIXELS):
                         factor = 1 / (1 + abs(index - i)**2)
                         # print(i, factor)
-                        frame.append(scale_brightness(
-                            color, factor))
+                        frame.append(scale_brightness(color, factor))
                     connection.fade_to(
                         frame=frame[::-1], duration=1 / 5, num_steps=10)
                 else:
                     frame = [randcolor(value=1 / 8) for i in range(NUMPIXELS)]
-                    connection.fade_to(
-                        frame=frame, duration=1, num_steps=10)
+                    connection.fade_to(frame=frame, duration=1, num_steps=10)
                 # connection.write_frame(frame)
+        elif chosen_mode == Modes.mouse_flat_color:
+            last_move_time = time.time()
+            movement_threshold = 10
+            time_threshold = 30
+            last_pos = pyautogui.position()
+            while True:
+                cur_time = time.time()
+                w, h = pyautogui.size()
+                pos = pyautogui.position()
+                x, y = pos
+
+                # idle detection
+                diffs = [abs(a - b) for a, b in zip(last_pos, pos)]
+
+                color = [i * 255 for i in colorsys.hsv_to_rgb(y / h, 1, 1)]
+                # print(x, y, w, h, color)
+                frame = [color for i in range(NUMPIXELS)]
+                connection.fade_to(
+                    frame=frame[::-1], duration=1 / 5, num_steps=10)
+                # connection.write_frame(frame)
+        elif chosen_mode == Modes.solid_white:
+            while True:
+                frame = [(255, 255, 255) for i in range(NUMPIXELS)]
+                connection.fade_to(
+                    frame=frame[::-1], duration=1 / 5, num_steps=10)
+
     except KeyboardInterrupt:
         quit()
 

@@ -10,26 +10,17 @@ from setuptools import setup, find_packages
 # string in below ...
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
-print(read('requirements.txt').split('\n'))
+
+# print(read('requirements.txt').split('\n'))
 # the setup
 setup(
-    name='ardulight',
+    name='allamericanregress',
     version=0.1,
-    description='Controller for Arduino LED hardware',
+    description='Capstone project.',
     # long_description=read('README'),
-    url='https://github.com/TheCDC/ardulight',
-    author='thecdc',
-    author_email='christopher.chen1995@gmail.com',
-    packages=find_packages(exclude=('docs', 'tests', 'env', 'index.py')),
+    url='https://github.com/jcrayz/Capstone',
+    author='AllAmericanRegress',
+    author_email='',
     include_package_data=True,
-    setup_requires=['pillow',
-                    'pyserial',
-                    'pyscreenshot',
-                    ],
-    extras_require={
-        'dev': [],
-        'docs': [],
-        'testing': [],
-    },
-    classifiers=[],
+    setup_requires=[],
 )

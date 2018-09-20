@@ -158,8 +158,7 @@ def generic_demos(connection):
 
 
 def quick_demos(connection):
-    ani_wheel_slice(n=200, t=3, connection=connection)
-    ani_sinwave(n=1, t=6, resolution=3,
+    ani_sinwave(n=3, t=3, resolution=3,
                 power=1.5, connection=connection)
     ani_wheel(n=2, t=3, connection=connection)
     for _ in range(3):
