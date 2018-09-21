@@ -43,7 +43,8 @@ def main():
         if chosen_mode == Modes.mouse:
             last_move_time = time.time()
             movement_threshold = 10
-            time_threshold = 30
+            time_threshold_short = 30
+            time_threshold_long = 60
             last_pos = pyautogui.position()
             while True:
                 cur_time = time.time()
@@ -56,7 +57,8 @@ def main():
                 if max(diffs) >= movement_threshold:
                     last_move_time = time.time()
                     last_pos = pos
-                if cur_time - last_move_time <= time_threshold:
+                idle_time = cur_time - last_move_time
+                if idle_time <= time_threshold_short:
 
                     index = NUMPIXELS * x / w
                     color = [i * 255 for i in colorsys.hsv_to_rgb(y / h, 1, 1)]
@@ -68,9 +70,12 @@ def main():
                         frame.append(scale_brightness(color, factor))
                     connection.fade_to(
                         frame=frame[::-1], duration=1 / 5, num_steps=10)
-                else:
+                elif idle_time > time_threshold_short and idle_time <= time_threshold_long:
                     frame = [randcolor(value=1 / 8) for i in range(NUMPIXELS)]
                     connection.fade_to(frame=frame, duration=1, num_steps=10)
+
+                else:
+                    time.sleep(0.1)
                 # connection.write_frame(frame)
         elif chosen_mode == Modes.mouse_flat_color:
             last_move_time = time.time()
