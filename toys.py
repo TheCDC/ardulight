@@ -44,7 +44,7 @@ def main():
             last_move_time = time.time()
             movement_threshold = 10
             time_threshold_short = 30
-            time_threshold_long = 60
+            time_threshold_long = 60*10
             last_pos = pyautogui.position()
             while True:
                 cur_time = time.time()
